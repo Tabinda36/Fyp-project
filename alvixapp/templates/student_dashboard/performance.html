@@ -1,0 +1,314 @@
+{% extends "student_dashboard/dashboard.html" %}
+{% block content %}
+
+<style>
+/* ==========================================
+   ALVIX PERFORMANCE & SCORING PORTAL
+========================================== */
+body {
+    background: #fdfbf7;
+    font-family: 'Poppins', sans-serif;
+    color: #064e3b;
+}
+
+.perf-card {
+    border: 1.5px solid #d4af37 !important;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.perf-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #064e3b;
+    letter-spacing: -0.5px;
+}
+
+.perf-title::after {
+    content: "";
+    display: block;
+    width: 70px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: 20px;
+    background: #d4af37;
+}
+
+.score-banner {
+    background: linear-gradient(135deg, #fefefc, #f7f3e8);
+    border: 1.5px solid #d4af37;
+    border-radius: 18px;
+    padding: 28px 20px;
+}
+
+.overall-score-number {
+    font-size: 64px;
+    font-weight: 900;
+    color: #064e3b;
+    line-height: 1;
+}
+
+.level-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #064e3b, #047857);
+    color: #ffffff;
+    border: 1px solid #d4af37;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.cert-card-unlocked {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid #10b981;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.cert-card-locked {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border: 2px dashed #ef4444;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.table-perf th {
+    background-color: #064e3b;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+}
+
+.table-perf td {
+    vertical-align: middle;
+    font-size: 14px;
+}
+</style>
+
+<div class="container-fluid py-4 px-md-4">
+
+    <!-- Top Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom border-warning">
+        <div>
+            <h2 class="perf-title mb-1 text-start d-inline-block">📊 Course Performance & Scoring</h2>
+            <p class="text-muted small mb-0 mt-2">
+                Active Track: <strong>{% firstof active_course.admin_course.title active_course.title active_course.course_title active_course.course_name active_course.topic active_course %}</strong> |
+                Level: <span class="badge bg-secondary">{{ active_course.level|default:"Standard" }}</span> |
+                Plan Duration: <span class="badge bg-dark">{{ performance.total_days|default:7 }} Days</span>
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="{% url 'course_content_view' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 me-2">
+                <i class="bi bi-journal-text me-1"></i> Syllabus
+            </a>
+            <a href="{% url 'daily_lesson' %}" class="btn btn-success btn-sm rounded-pill px-3 text-white">
+                <i class="bi bi-play-circle me-1"></i> Continue Lesson
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN HERO GRID: Overall Score & Certificate Unlocker -->
+    <div class="row g-4 mb-4 align-items-stretch">
+        
+        <!-- Score Banner -->
+        <div class="col-lg-5 d-flex">
+            <div class="score-banner w-100 text-center d-flex flex-column justify-content-center shadow-sm">
+                <small class="text-uppercase text-muted fw-bold letter-spacing-1">Overall Course Score</small>
+                <div class="overall-score-number my-2">{{ performance.overall_percentage }}%</div>
+                <div>
+                    <span class="level-badge me-2">
+                        <i class="bi bi-award-fill me-1 text-warning"></i> Grade: {{ performance.grade }}
+                    </span>
+                    <span class="badge {% if performance.is_passed %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+                        {% if performance.is_passed %}Passed (Pass Mark: {{ performance.pass_mark }}%){% else %}Needs {{ score_gap }}% to Pass{% endif %}
+                    </span>
+                </div>
+                <div class="mt-3 text-muted small">
+                    Completed <strong>{{ performance.completed_days_count }}</strong> of <strong>{{ performance.total_days }}</strong> days
+                </div>
+            </div>
+        </div>
+
+        <!-- CERTIFICATE UNLOCK CARD -->
+        <div class="col-lg-7 d-flex">
+            <div class="w-100 shadow-sm d-flex flex-column justify-content-center {% if performance.is_unlocked %}cert-card-unlocked{% else %}cert-card-locked{% endif %}">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="fs-1 {% if performance.is_unlocked %}text-success{% else %}text-danger{% endif %}">
+                        <i class="bi {% if performance.is_unlocked %}bi-patch-check-fill{% else %}bi-lock-fill{% endif %}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="fw-bold mb-1 {% if performance.is_unlocked %}text-success{% else %}text-danger{% endif %}">
+                            {% if performance.is_unlocked %}
+                                🎓 Certificate of Completion Unlocked!
+                            {% else %}
+                                🔒 Certificate Locked
+                            {% endif %}
+                        </h4>
+
+                        {% if performance.is_unlocked %}
+                            <p class="text-muted small mb-3">
+                                Congratulations! You have successfully completed all {{ performance.total_days }} days and achieved an overall percentage of <strong>{{ performance.overall_percentage }}%</strong> (exceeding the required {{ performance.pass_mark }}% pass mark).
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'certificate' active_course.id %}" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm">
+                                    <i class="bi bi-eye-fill me-1"></i> View Your Certificate
+                                </a>
+                                <a href="{% url 'download_certificate_pdf' active_course.id %}" class="btn btn-outline-dark fw-semibold px-3 py-2 rounded-pill">
+                                    <i class="bi bi-download me-1"></i> Download PDF
+                                </a>
+                            </div>
+                        {% else %}
+                            <p class="text-muted small mb-2">
+                                The official ALVIX Certificate unlocks once you complete all course days and achieve at least the <strong>{{ performance.pass_mark }}%</strong> pass mark.
+                            </p>
+                            <div class="alert alert-light border border-danger-subtle p-2 mb-3 small">
+                                <strong class="text-danger"><i class="bi bi-exclamation-circle me-1"></i> Remaining Requirements:</strong>
+                                <ul class="mb-0 ps-3 mt-1 text-muted">
+                                    {% if remaining_lessons > 0 %}
+                                    <li><strong>{{ remaining_lessons }} lesson(s)</strong> remaining to complete.</li>
+                                    {% endif %}
+                                    {% if score_gap > 0 %}
+                                    <li><strong>{{ score_gap }}%</strong> additional overall score needed to reach the <strong>{{ performance.pass_mark }}%</strong> pass mark.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <button class="btn btn-secondary rounded-pill px-4 py-2" disabled>
+                                <i class="bi bi-lock-fill me-1"></i> Certificate Locked
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DAILY SCORING BREAKDOWN TABLE -->
+    <div class="card perf-card mb-4 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom border-warning d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold alvix-text-dark-green mb-0">
+                    <i class="bi bi-table me-2 text-warning"></i> Day-by-Day Scoring Breakdown
+                </h5>
+                <small class="text-muted">
+                    Total: 100% split across {{ performance.total_days }} days (~{{ performance.days.0.day_max_score|floatformat:1 }}% each). Within each day: 20% Watch Time, 40% Assignment, 40% Quiz.
+                </small>
+            </div>
+            <div class="mt-2 mt-md-0">
+                <span class="badge bg-light text-dark border me-1">⏱️ Watch: 20%</span>
+                <span class="badge bg-light text-dark border me-1">📝 Assignment: 40%</span>
+                <span class="badge bg-light text-dark border">❓ Quiz: 40%</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-perf mb-0 text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start ps-3" style="width: 25%;">Day & Lesson Title</th>
+                            <th>Watch Time<br><small class="text-light opacity-75">(20% share)</small></th>
+                            <th>Assignment<br><small class="text-light opacity-75">(40% share)</small></th>
+                            <th>Quiz<br><small class="text-light opacity-75">(40% share)</small></th>
+                            <th>Day Score<br><small class="text-light opacity-75">(Max {{ performance.days.0.day_max_score|floatformat:1 }}%)</small></th>
+                            <th>Daily Total %</th>
+                            <th class="text-start pe-3" style="width: 25%;">Remarks & Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in performance.days %}
+                        <tr>
+                            <td class="text-start ps-3">
+                                <span class="badge bg-dark me-1">Day {{ day.day_number }}</span>
+                                <strong class="text-dark">{{ day.lesson_title }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge {% if day.watch_time_pct >= 100 %}bg-success{% elif day.watch_time_pct > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ day.watch_time_pct|floatformat:0 }}%
+                                </span>
+                                <small class="d-block text-muted">{{ day.watch_time_score|floatformat:1 }} pts</small>
+                            </td>
+                            <td>
+                                <span class="badge {% if day.assignment_pct >= 80 %}bg-success{% elif day.assignment_pct > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ day.assignment_pct|floatformat:0 }}%
+                                </span>
+                                <small class="d-block text-muted">{{ day.assignment_score|floatformat:1 }} pts</small>
+                            </td>
+                            <td>
+                                <span class="badge {% if day.quiz_pct >= 80 %}bg-success{% elif day.quiz_pct > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ day.quiz_pct|floatformat:0 }}%
+                                </span>
+                                <small class="d-block text-muted">{{ day.quiz_score|floatformat:1 }} pts</small>
+                            </td>
+                            <td>
+                                <strong class="alvix-text-dark-green">{{ day.day_score|floatformat:1 }}</strong> / {{ day.day_max_score|floatformat:1 }}%
+                            </td>
+                            <td>
+                                <span class="badge {% if day.day_percentage >= 70 %}bg-success{% elif day.day_percentage >= 35 %}bg-warning text-dark{% else %}bg-secondary{% endif %} px-2 py-1">
+                                    {{ day.day_percentage|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td class="text-start pe-3 small text-muted">
+                                {{ day.remarks }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-4 text-muted">No daily lessons recorded for this course yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI EVALUATION REVIEW PANEL -->
+    {% if performance.ai_review %}
+    <div class="card perf-card shadow-sm p-4">
+        <h5 class="fw-bold alvix-text-dark-green mb-3">
+            <i class="bi bi-robot text-warning me-2"></i> AI Performance Review & Advisory
+        </h5>
+        <div class="p-3 bg-light rounded border border-warning mb-3">
+            <p class="mb-0 text-dark" style="line-height: 1.6;">
+                {{ performance.ai_review }}
+            </p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded border border-success h-100">
+                    <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i> Core Strengths</h6>
+                    <ul class="small text-muted mb-0 ps-3">
+                        {% for s in performance.strengths %}
+                        <li>{{ s }}</li>
+                        {% empty %}
+                        <li>Active consistency in daily lesson participation.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded border border-warning h-100">
+                    <h6 class="fw-bold text-warning mb-2"><i class="bi bi-lightbulb-fill me-1"></i> Topics to Review</h6>
+                    <ul class="small text-muted mb-0 ps-3">
+                        {% for w in performance.weak_topics %}
+                        <li>{{ w }}</li>
+                        {% empty %}
+                        <li>Maintain deep focus on practical assignments and test case validations.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

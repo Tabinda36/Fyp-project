@@ -1,0 +1,443 @@
+{% extends 'student_dashboard/dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+        
+    <!-- HERO HEADER SHOWCASE BANNER -->
+    <div class="hero-course-banner p-4 p-md-5 mb-4 rounded-4 shadow-lg text-white position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #022C22 0%, #064E3B 55%, #0F5A44 100%); border: 2px solid #D4AF37; box-shadow: 0 12px 35px rgba(6, 78, 59, 0.3) !important;">
+        <div class="position-relative" style="z-index: 2;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    {% if active_course and active_course.admin_course.course_code %}
+                    <span class="badge" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #064E3B; font-weight: 800; font-size: 0.85rem; border-radius: 20px; padding: 7px 16px;">
+                        <i class="bi bi-tag-fill me-1"></i>{{ active_course.admin_course.course_code }}
+                    </span>
+                    {% endif %}
+                    <span class="badge" style="background: rgba(212, 175, 55, 0.18); color: #FEF9E7; border: 1.5px solid #D4AF37; font-size: 0.85rem; padding: 7px 16px; border-radius: 20px; font-weight: 700;">
+                        <i class="bi bi-clock-history me-1 text-warning"></i>{{ plan_duration|default:12 }}-Day {{ course_type|default:"Mixed" }} Track
+                    </span>
+                    {% if active_course.course_level %}
+                    <span class="badge" style="background: #064E3B; color: #D4AF37; border: 1.5px solid #D4AF37; font-size: 0.85rem; padding: 7px 16px; border-radius: 20px; font-weight: 700;">
+                        <i class="bi bi-trophy-fill text-warning me-1"></i>{{ active_course.course_level.benchmark }}
+                    </span>
+                    {% elif active_course.level %}
+                    <span class="badge" style="background: #064E3B; color: #D4AF37; border: 1.5px solid #D4AF37; font-size: 0.85rem; padding: 7px 16px; border-radius: 20px; font-weight: 700;">
+                        <i class="bi bi-award-fill text-warning me-1"></i>{{ active_course.level }} Benchmark
+                    </span>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="badge bg-black bg-opacity-40 text-light border border-warning border-opacity-50 px-3 py-2 rounded-pill small">
+                        <i class="bi bi-shield-check text-warning me-1"></i> Verified Academic Syllabus
+                    </span>
+                </div>
+            </div>
+
+            <h1 class="display-6 fw-bold mb-2 text-white" style="letter-spacing: -0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+                <i class="bi bi-mortarboard-fill text-warning me-2"></i>
+                {% if active_course.admin_course %}{{ active_course.admin_course.title }}{% else %}{{ active_course.title|default:"Masterclass Course" }}{% endif %}
+            </h1>
+            <p class="mb-0 text-white-50" style="max-width: 820px; font-size: 1rem; line-height: 1.6;">
+                World-class university curriculum structured into core topics, interactive daily lessons, hands-on assignments, and concept quizzes with Inara, your personal AI teacher.
+            </p>
+
+            <!-- Quick Metrics Strip -->
+            <div class="d-flex align-items-center gap-4 mt-4 pt-3 border-top border-warning border-opacity-25 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-circle p-2" style="background: rgba(212, 175, 55, 0.25); color: #D4AF37;"><i class="bi bi-layers-half fs-6"></i></span>
+                    <span class="small text-light"><strong>{{ content_topics|length }}</strong> Syllabus Topics</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-circle p-2" style="background: rgba(212, 175, 55, 0.25); color: #D4AF37;"><i class="bi bi-play-circle-fill fs-6"></i></span>
+                    <span class="small text-light"><strong>{{ lessons|length }}</strong> Masterclass Lectures</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-circle p-2" style="background: rgba(212, 175, 55, 0.25); color: #D4AF37;"><i class="bi bi-file-earmark-slides-fill fs-6"></i></span>
+                    <span class="small text-light"><strong>13+ Slides</strong> Per Lecture</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-circle p-2" style="background: rgba(212, 175, 55, 0.25); color: #D4AF37;"><i class="bi bi-patch-check-fill fs-6"></i></span>
+                    <span class="small text-light"><strong>35%</strong> Passing Grade</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN LAYOUT -->
+    <div class="row g-4">
+        <!-- Left Column: Unified Course Content & Lesson Plan Container (Zero Awkward Gaps) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="border: 2px solid #D4AF37 !important; background: #ffffff;">
+                
+                <!-- UNIFIED CONTAINER HEADER & NAVIGATION TABS -->
+                <div class="card-header bg-white border-bottom border-warning-subtle p-3 px-md-4">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div>
+                            <span class="badge" style="background: #064E3B; color: #D4AF37; font-weight: 700; font-size: 0.78rem; padding: 5px 12px; border-radius: 8px;">
+                                <i class="bi bi-diagram-3-fill me-1"></i> CURRICULUM HUB
+                            </span>
+                            <h4 class="fw-bold text-success mb-0 mt-1">Course Content & Lesson Schedule</h4>
+                        </div>
+
+                        <!-- Seamless Tab Buttons -->
+                        <ul class="nav nav-pills gap-2" id="curriculumTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active px-3 py-2 fw-bold rounded-pill shadow-xs" id="schedule-tab-btn" data-bs-toggle="pill" data-bs-target="#schedule-tab" type="button" role="tab" style="font-size: 0.88rem;">
+                                    <i class="bi bi-calendar2-week-fill me-1 text-warning"></i> Lesson Plan ({{ plan_duration }}-Day {{ course_type }} Track)
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link px-3 py-2 fw-bold rounded-pill shadow-xs" id="topics-tab-btn" data-bs-toggle="pill" data-bs-target="#topics-tab" type="button" role="tab" style="font-size: 0.88rem;">
+                                    <i class="bi bi-layers-half me-1 text-warning"></i> Course Content ({{ content_topics|length }} Topics)
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-body p-3 p-md-4">
+                    <div class="tab-content" id="curriculumTabContent">
+                        
+                        <!-- TAB 1: INTERACTIVE DAILY LESSON PLAN -->
+                        <div class="tab-pane fade show active" id="schedule-tab" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light-subtle">
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calendar2-week-fill me-2 text-warning"></i>Lesson Plan</h5>
+                                    <p class="text-muted small mb-0">
+                                        <strong>{{ plan_duration }}-Day {{ course_type }} Track:</strong> Topics distributed across the schedule. Each day contains exactly one lesson, one assignment, and one quiz.
+                                    </p>
+                                </div>
+                                <span class="badge golden-badge px-3 py-2 rounded-pill fs-7">{{ lessons|length }} of {{ plan_duration }} Days</span>
+                            </div>
+
+                            <div class="ai-generated-content">
+                                {% if lessons %}
+                                    <div class="d-flex flex-column gap-3" id="lessonsAccordion">
+                                        {% for lesson in lessons %}
+                                            <div class="card lesson-card border-0 shadow-sm rounded-4 overflow-hidden" style="border: 1.5px solid #e2e8f0 !important; background: #fdfcf9;">
+                                                <div class="card-header bg-white border-bottom border-warning-subtle d-flex justify-content-between align-items-center py-3 px-3 px-md-4 flex-wrap gap-2">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <span class="badge rounded-circle p-2 fw-bold shadow-xs" style="background: linear-gradient(135deg, #064E3B, #106E53); color: #D4AF37; min-width: 42px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; border: 1.5px solid #D4AF37;">
+                                                            D{{ lesson.day_number }}
+                                                        </span>
+                                                        <div>
+                                                            <h5 class="mb-1 fw-bold text-success">{{ lesson.title }}</h5>
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                                <span class="badge bg-success-subtle text-success border border-success small" style="font-size: 0.72rem;">
+                                                                    <i class="bi bi-check-circle-fill me-1"></i>1 Lesson
+                                                                </span>
+                                                                <span class="badge bg-warning-subtle text-dark border border-warning small" style="font-size: 0.72rem;">
+                                                                    <i class="bi bi-pencil-square me-1"></i>1 Assignment
+                                                                </span>
+                                                                <span class="badge bg-primary-subtle text-primary border border-primary small" style="font-size: 0.72rem;">
+                                                                    <i class="bi bi-question-square me-1"></i>1 Quiz
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- ACTION BUTTONS -->
+                                                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                                                        <a href="{% url 'daily_lesson' lesson.id %}" class="btn btn-sm btn-golden fw-bold rounded-pill px-3 shadow-sm" title="Launch Lesson Presentation Player">
+                                                            <i class="bi bi-play-circle-fill me-1"></i> Lesson
+                                                        </a>
+                                                        {% if lesson.has_real_video %}
+                                                        <a href="{% url 'daily_lesson' lesson.id %}?mode=video" class="btn btn-sm btn-success fw-semibold rounded-pill px-3 shadow-sm video-status-btn" id="video-btn-{{ lesson.id }}" title="Watch Masterclass Video Lecture">
+                                                            <i class="bi bi-camera-video-fill me-1 text-warning"></i> Video
+                                                        </a>
+                                                        {% endif %}
+                                                        <a href="{% url 'download_lesson_ppt' lesson.id %}" class="btn btn-sm fw-semibold text-dark shadow-sm rounded-pill px-3" style="background-color: #D4AF37; border: 1px solid #c49f27;" title="Download Teacher Masterclass PPT (.pptx)">
+                                                            <i class="bi bi-file-earmark-slides-fill me-1 text-dark"></i> PPT
+                                                        </a>
+                                                        <a href="{% url 'assignment_view' %}?lesson_id={{ lesson.id }}" class="btn btn-sm btn-outline-golden rounded-pill px-3 fw-semibold shadow-xs" title="View Assignment">
+                                                            <i class="bi bi-pencil-square me-1"></i> Assignment
+                                                        </a>
+                                                        <a href="{% url 'quiz_view' %}?lesson_id={{ lesson.id }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold shadow-xs" title="Take Quiz">
+                                                            <i class="bi bi-question-square-fill me-1"></i> Quiz
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-3 p-md-4">
+                                                    <div class="text-secondary mb-3" style="font-size: 0.95rem; line-height: 1.6;">{{ lesson.content|safe }}</div>
+                                                    {% if lesson.video_script %}
+                                                        <div class="mt-2">
+                                                            <button class="btn btn-sm btn-outline-golden fw-semibold rounded-pill px-3" type="button" data-bs-toggle="collapse" data-bs-target="#script-{{ lesson.id }}">
+                                                                <i class="bi bi-code-square me-1"></i> View Video Script / Notes
+                                                            </button>
+                                                            <div class="collapse mt-2" id="script-{{ lesson.id }}">
+                                                                <div class="card card-body bg-dark text-light font-monospace small border-0 golden-border rounded-3">
+                                                                    <pre class="mb-0 text-wrap text-warning" style="font-size: 0.85rem;">{{ lesson.video_script }}</pre>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-journal-x fs-1 text-muted mb-3 d-block"></i>
+                                        <p class="text-muted fw-semibold">No active lessons found. Please select a course tier to get started.</p>
+                                        <a href="{% url 'generate_course' %}" class="btn btn-golden rounded-pill px-4">Browse University Courses</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: UNIVERSITY SYLLABUS TOPICS -->
+                        <div class="tab-pane fade" id="topics-tab" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light-subtle">
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-layers-half me-2 text-warning"></i>Course Content</h5>
+                                    <p class="text-muted small mb-0">Main topics taught by top-ranked universities. Click <strong>Extend</strong> on any topic to inspect what you will study.</p>
+                                </div>
+                                <span class="badge golden-badge px-3 py-2 rounded-pill fs-7">{{ content_topics|length }} Main Topics</span>
+                            </div>
+
+                            <div class="topics-accordion" id="courseTopicsList">
+                                {% if content_topics %}
+                                    <div class="d-flex flex-column gap-3">
+                                        {% for topic in content_topics %}
+                                            <div class="card topic-card border-0 shadow-sm rounded-4 overflow-hidden" style="border: 1.5px solid #e2e8f0 !important; background: #ffffff;">
+                                                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 px-3 px-md-4 flex-wrap gap-2">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <span class="badge golden-badge rounded-pill px-3 py-2 fs-7">
+                                                            Topic {{ forloop.counter }}
+                                                        </span>
+                                                        <h5 class="mb-0 fw-bold text-success">{{ topic.title }}</h5>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-golden extend-btn px-3 py-1 fw-bold rounded-pill shadow-xs" 
+                                                            type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#topic-collapse-{{ forloop.counter }}" 
+                                                            aria-expanded="false" 
+                                                            aria-controls="topic-collapse-{{ forloop.counter }}"
+                                                            id="extend-btn-{{ forloop.counter }}">
+                                                        <i class="bi bi-arrows-angle-expand me-1"></i>Extend
+                                                    </button>
+                                                </div>
+                                                <div class="collapse" id="topic-collapse-{{ forloop.counter }}">
+                                                    <div class="card-body bg-light border-top border-warning-subtle p-3 p-md-4">
+                                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                                            <span class="text-uppercase small fw-bold text-success">
+                                                                <i class="bi bi-mortarboard-fill me-1 text-warning"></i>What You Will Study in this Topic ({{ topic.bullets|length }} Modules):
+                                                            </span>
+                                                            <span class="badge bg-success-subtle text-success border border-success small">University Syllabus Standard</span>
+                                                        </div>
+                                                        <ul class="list-unstyled mb-0">
+                                                            {% for bullet in topic.bullets %}
+                                                                <li class="py-2 px-3 mb-2 bg-white rounded-3 border border-light-subtle d-flex align-items-start gap-2 shadow-xs">
+                                                                    <span class="badge rounded-pill bg-success text-white fw-bold mt-1" style="font-size: 0.7rem;">{{ forloop.counter }}</span>
+                                                                    <span class="small text-dark fw-medium" style="line-height: 1.6;">{{ bullet }}</span>
+                                                                </li>
+                                                            {% empty %}
+                                                                <li class="text-muted small">Topic syllabus details will appear here.</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="p-4 bg-light rounded-4 text-center text-muted">
+                                        <i class="bi bi-journal-text fs-2 text-warning mb-2 d-block"></i>
+                                        Course topics are being calibrated according to university benchmarks.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: AI Tutor Insights & Curriculum Architecture Summary -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden p-4 mb-4" style="border: 2px solid #D4AF37 !important; background: #ffffff;">
+                {% if active_course and active_course.admin_course and active_course.admin_course.image %}
+                    <div class="mb-3 rounded-3 overflow-hidden shadow-sm" style="height: 160px; border: 1.5px solid #d4af37;">
+                        <img src="{{ active_course.admin_course.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ active_course.admin_course.title }}">
+                    </div>
+                {% endif %}
+                <div class="text-center mb-3">
+                    <span class="badge rounded-circle p-3 mb-2 shadow-xs" style="background: #064E3B; color: #D4AF37;">
+                        <i class="bi bi-cpu fs-3"></i>
+                    </span>
+                    <h5 class="fw-bold text-success mb-1">Curriculum Architecture</h5>
+                    {% if active_course %}
+                        <p class="text-muted small mb-0">Benchmarked for <strong>{{ active_course.level|default:"Beginner" }}</strong> level based on academic rank.</p>
+                    {% endif %}
+                </div>
+
+                {% if active_course %}
+                    <hr class="golden-hr my-3">
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-3 bg-light border border-light-subtle">
+                            <span class="small text-muted"><i class="bi bi-compass me-1 text-success"></i> Course Track:</span>
+                            <strong class="small text-success">{{ course_type }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-3 bg-light border border-light-subtle">
+                            <span class="small text-muted"><i class="bi bi-clock me-1 text-warning"></i> Total Duration:</span>
+                            <strong class="small text-dark">{{ plan_duration }} Days</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-3 bg-light border border-light-subtle">
+                            <span class="small text-muted"><i class="bi bi-layers me-1 text-primary"></i> Main Topics:</span>
+                            <strong class="small text-dark">{{ content_topics|length }} Topics</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-3 bg-light border border-light-subtle">
+                            <span class="small text-muted"><i class="bi bi-check2-circle me-1 text-success"></i> Daily Plan:</span>
+                            <strong class="small text-success">1 Lesson, 1 Task, 1 Quiz</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-3 bg-light border border-light-subtle">
+                            <span class="small text-muted"><i class="bi bi-file-earmark-slides me-1 text-warning"></i> Slide Decks:</span>
+                            <strong class="small text-warning">Web View + PPTX</strong>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 p-3 rounded-3 mb-3" style="background: #FEF9E7; border: 1px solid #D4AF37 !important;">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-patch-check-fill text-success fs-5"></i>
+                            <h6 class="fw-bold text-dark mb-0">Certificate Qualification</h6>
+                        </div>
+                        <p class="small text-muted mb-0" style="line-height: 1.5;">
+                            Achieve a cumulative score of at least <strong>35%</strong> across lesson watch-time, assignments, and quizzes to unlock your verified course certificate.
+                        </p>
+                    </div>
+
+                    <hr class="golden-hr my-3">
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="p-2 rounded-3 bg-light border">
+                                <h5 class="fw-bold text-success mb-0">{{ lessons|length }}</h5>
+                                <small class="text-muted" style="font-size: 0.72rem;">Lessons</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded-3 bg-light border">
+                                <h5 class="fw-bold text-success mb-0">{{ lessons|length }}</h5>
+                                <small class="text-muted" style="font-size: 0.72rem;">Assignments</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded-3 bg-light border">
+                                <h5 class="fw-bold text-success mb-0">{{ lessons|length }}</h5>
+                                <small class="text-muted" style="font-size: 0.72rem;">Quizzes</small>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted small text-center mb-0">No course active. Generate your personalized learning plan.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Handles toggling button text between 'Extend' and 'Collapse' for topic cards
+    document.addEventListener('DOMContentLoaded', function () {
+        const collapses = document.querySelectorAll('.topic-card .collapse');
+        collapses.forEach(function (collapseEl) {
+            collapseEl.addEventListener('show.bs.collapse', function () {
+                const targetId = this.getAttribute('id');
+                const btn = document.querySelector(`[data-bs-target="#${targetId}"]`);
+                if (btn) {
+                    btn.innerHTML = '<i class="bi bi-arrows-angle-contract me-1"></i>Collapse';
+                    btn.classList.remove('btn-golden');
+                    btn.classList.add('btn-outline-golden');
+                }
+            });
+            collapseEl.addEventListener('hide.bs.collapse', function () {
+                const targetId = this.getAttribute('id');
+                const btn = document.querySelector(`[data-bs-target="#${targetId}"]`);
+                if (btn) {
+                    btn.innerHTML = '<i class="bi bi-arrows-angle-expand me-1"></i>Extend';
+                    btn.classList.remove('btn-outline-golden');
+                    btn.classList.add('btn-golden');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Golden Theme & Dashboard Styling */
+    .page-title { color: #1B5E20; font-weight: 700; }
+    
+    .golden-border {
+        border: 2px solid #D4AF37 !important;
+        box-shadow: 0 4px 14px rgba(212, 175, 55, 0.18) !important;
+    }
+
+    .golden-badge {
+        background-color: #064E3B !important;
+        color: #D4AF37 !important;
+        border: 1px solid #D4AF37 !important;
+        font-weight: 600;
+    }
+
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        font-weight: 700;
+        border: 1px solid #B8860B !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-golden:hover {
+        background-color: #B8860B !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    }
+
+    .btn-outline-golden {
+        border: 1px solid #D4AF37 !important;
+        color: #B8860B !important;
+        background-color: transparent;
+    }
+
+    .btn-outline-golden:hover {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+    }
+
+    .dashboard-card { 
+        background: #FFFFFF; 
+        border-radius: 18px; 
+    }
+
+    .topic-card, .lesson-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .topic-card:hover, .lesson-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(212, 175, 55, 0.25) !important;
+    }
+
+    .golden-hr {
+        border-top: 1px solid #D4AF37;
+        opacity: 0.5;
+    }
+
+    .ai-generated-content p { color: #495057; line-height: 1.6; }
+
+    #curriculumTabs .nav-link {
+        color: #064E3B;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    #curriculumTabs .nav-link.active {
+        background: linear-gradient(135deg, #064E3B, #106E53);
+        color: #D4AF37;
+        border-color: #D4AF37;
+    }
+</style>
+
+{% endblock content %}

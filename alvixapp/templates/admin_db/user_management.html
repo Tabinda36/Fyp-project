@@ -1,0 +1,322 @@
+{% extends 'admin_db/admindashboard.html' %}
+
+{% block admin_content %}
+<!-- Custom CSS for User Management -->
+<style>
+    /* Search Bar Custom Styling */
+    .search-box input {
+        border: 2px solid #d4af37 !important;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        color: #064e3b;
+        font-weight: 600;
+        background-color: #ffffff;
+    }
+
+    .search-box input:focus {
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.3) !important;
+        border-color: #064e3b !important;
+        outline: none;
+    }
+
+    /* User Table Design Matching ALVIX Theme */
+    #usersTable {
+        color: #064e3b;
+        vertical-align: middle;
+    }
+
+    #usersTable thead {
+        background-color: #f0fdf4 !important;
+        border-bottom: 2px solid #d4af37;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    #usersTable tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    #usersTable tbody tr:hover {
+        background-color: #f0fdf4 !important;
+    }
+
+    /* Password Dots Styling */
+    .user-password-cell {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        letter-spacing: 3px;
+        font-weight: bold;
+        color: #4b5563;
+    }
+
+    /* Action Buttons Styling */
+    .edit-user-btn {
+        border-color: #064e3b !important;
+        color: #064e3b !important;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .edit-user-btn:hover {
+        background-color: #064e3b !important;
+        color: #ffffff !important;
+    }
+
+    .delete-user-btn {
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .modal-content {
+        border: 2px solid #d4af37 !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+<div class="container-fluid p-0">
+    
+    <!-- Top Header & Search Bar Row -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: #064e3b;">User Management</h3>
+            <p class="text-muted small mb-0">View, search, edit, and delete system users.</p>
+        </div>
+
+        <!-- Live Search Bar -->
+        <div class="search-box position-relative" style="min-width: 280px;">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="userSearchInput" class="form-control ps-5 rounded-3" placeholder="Search by name, email, phone, role...">
+        </div>
+    </div>
+
+    <!-- Users Table Container -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="border: 1.5px solid #d4af37 !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
+                <thead>
+                    <tr>
+                        <th class="py-3 ps-4">Username</th>
+                        <th class="py-3">Email</th>
+                        <th class="py-3">Phone</th>
+                        <th class="py-3">Enrolled Courses</th>
+                        <th class="py-3">DOB</th>
+                        <th class="py-3">Password</th>
+                        <th class="py-3">Role</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic Backend Users Output -->
+                    {% if users %}
+                        {% for user in users %}
+                        <tr class="user-row">
+                            <td class="ps-4 fw-semibold text-dark user-name">{{ user.username }}</td>
+                            <td class="user-email text-muted">{{ user.email }}</td>
+                            
+                            <!-- Phone Number -->
+                            <td class="user-phone text-muted">
+                                {% if user.profile and user.profile.phone %}
+                                    {{ user.profile.phone }}
+                                {% else %}
+                                    <span class="text-muted small fst-italic">Not Provided</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Enrolled Courses with Fixed Width & Ellipsis (...) -->
+                            <td class="user-courses" style="max-width: 220px;">
+                                {% if user.custom_generated_courses %}
+                                    {% for gc in user.custom_generated_courses %}
+                                        <div class="d-inline-block text-truncate text-success bg-light border border-success-subtle rounded px-2 py-1 mb-1" 
+                                            style="max-width: 200px; vertical-align: middle; cursor: pointer;" 
+                                            title="{{ gc }}">
+                                            {{ gc }}
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted small fst-italic">No Course Enrolled</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Date of Birth -->
+                            <td class="user-dob text-muted">
+                                {% if user.profile and user.profile.dob %}
+                                    {{ user.profile.dob|date:"Y-m-d" }}
+                                {% else %}
+                                    <span class="text-muted small fst-italic">Not Provided</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Password Invisible Dots -->
+                            <td class="user-password-cell">
+                                ••••••••
+                            </td>
+                            
+                            <td>
+                                <span class="badge bg-light text-dark border user-role">Student</span>
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-success me-1 edit-user-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editUserModal"
+                                        data-userid="{{ user.id }}"
+                                        data-username="{{ user.username }}"
+                                        data-email="{{ user.email }}"
+                                        data-phone="{% if user.profile and user.profile.phone %}{{ user.profile.phone }}{% endif %}"
+                                        data-dob="{% if user.profile and user.profile.dob %}{{ user.profile.dob|date:'Y-m-d' }}{% endif %}">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteUserModal"
+                                        data-userid="{{ user.id }}"
+                                        data-username="{{ user.username }}">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">No users found in the database.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ================= EDIT USER MODAL ================= -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header text-white" style="background-color: #064e3b;">
+                <h5 class="modal-title fw-bold" id="editUserModalLabel"><i class="bi bi-pencil-square me-2"></i>Edit User Details & Password</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm" method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" id="editUserId" name="user_id">
+                
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">User Name</label>
+                            <input type="text" class="form-control" id="editUserName" name="username" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Email Address</label>
+                            <input type="email" class="form-control" id="editUserEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Phone Number</label>
+                            <input type="text" class="form-control" id="editUserPhone" name="phone">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Date of Birth</label>
+                            <input type="date" class="form-control" id="editUserDob" name="dob">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark">Password (Reset / Update)</label>
+                            <input type="password" class="form-control" id="editUserPassword" name="password" placeholder="Enter new password if student forgot">
+                            <small class="text-muted">Admin can change or reset the password here if the student forgets it.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn text-white rounded-3" style="background-color: #064e3b;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= DELETE USER CONFIRMATION MODAL ================= -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="deleteUserModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteUserForm" method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" id="deleteUserId" name="user_id">
+                <div class="modal-body p-4 text-center">
+                    <p class="fs-5 mb-1">Kya aap waqai is user ko delete karna chahte hain?</p>
+                    <p class="fw-bold text-danger fs-5 mb-0" id="deleteUserNameDisplay"></p>
+                </div>
+                <div class="modal-footer bg-light justify-content-center">
+                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">No, Cancel</button>
+                    <button type="submit" class="btn btn-danger px-4 rounded-3">Yes, Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script Logic -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // 1. LIVE SEARCH LOGIC
+    const searchInput = document.getElementById('userSearchInput');
+    const tableRows = document.querySelectorAll('#usersTable tbody tr.user-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            tableRows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    }
+
+    // 2. EDIT MODAL AUTO-FILL LOGIC
+    const editModal = document.getElementById('editUserModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+
+            document.getElementById('editUserId').value = button.getAttribute('data-userid') || '';
+            document.getElementById('editUserName').value = button.getAttribute('data-username') || '';
+            document.getElementById('editUserEmail').value = button.getAttribute('data-email') || '';
+            document.getElementById('editUserPhone').value = button.getAttribute('data-phone') || '';
+            document.getElementById('editUserDob').value = button.getAttribute('data-dob') || '';
+            document.getElementById('editUserPassword').value = ''; 
+        });
+    }
+
+    // 3. DELETE MODAL LOGIC
+    const deleteModal = document.getElementById('deleteUserModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('deleteUserId').value = button.getAttribute('data-userid');
+            document.getElementById('deleteUserNameDisplay').textContent = button.getAttribute('data-username');
+        });
+    }
+
+});
+</script>
+{% endblock %}

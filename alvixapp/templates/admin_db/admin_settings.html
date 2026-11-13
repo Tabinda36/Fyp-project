@@ -1,0 +1,293 @@
+{% extends 'admin_db/admindashboard.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="container-fluid py-2">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-warning-subtle">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #064e3b; letter-spacing: -0.5px;">
+                <i class="bi bi-person-badge me-2" style="color: #d4af37;"></i>AI Teacher & Avatar Settings
+            </h2>
+            <p class="text-muted mb-0 small">
+                Configure your custom cartoon avatar, voice pronunciation, developer attribution, and lesson player animations.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge px-3 py-2" style="background: #fefce8; color: #064e3b; border: 1.5px solid #d4af37; font-weight: 700;">
+                <i class="bi bi-folder-check me-1"></i> public/assets/avatar/
+            </span>
+        </div>
+    </div>
+
+    <!-- Feedback Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ASSET VERIFICATION ALERT BANNER -->
+    {% if asset_status.all_exist %}
+    <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm mb-4 border-0" style="background: #f0fdf4; border-left: 5px solid #16a34a !important;">
+        <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+        <div>
+            <h6 class="fw-bold text-success mb-1">All Cartoon Avatar Assets Present & Verified</h6>
+            <p class="mb-0 small text-secondary">
+                All 4 PNG frames are present in <code>{{ asset_status.avatar_dir }}</code> with transparent backgrounds. Inara's full animation set (waving, idle breathing, blinking, and speech mouth sync) is active.
+            </p>
+        </div>
+    </div>
+    {% elif asset_status.none_exist %}
+    <div class="alert alert-danger d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm mb-4 border-0" style="background: #fef2f2; border-left: 5px solid #dc2626 !important;">
+        <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+        <div>
+            <h6 class="fw-bold text-danger mb-1">Warning: No Avatar Assets Found in public/assets/avatar/</h6>
+            <p class="mb-0 small text-secondary">
+                No cartoon frames were found in <code>{{ asset_status.avatar_dir }}</code>. The lesson player is currently falling back to the built-in SVG placeholder. To use your custom cartoon teacher, place <code>inara_idle.png</code>, <code>inara_wave.png</code>, <code>inara_blink.png</code>, and <code>inara_mouth_open.png</code> in that folder.
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm mb-4 border-0" style="background: #fffbeb; border-left: 5px solid #d97706 !important;">
+        <i class="bi bi-exclamation-circle-fill fs-3 text-warning"></i>
+        <div>
+            <h6 class="fw-bold text-warning mb-1">Partial Avatar Assets Detected</h6>
+            <p class="mb-0 small text-secondary">
+                Found {{ asset_status.present_count }} of {{ asset_status.total_required }} frames. Missing frames:
+                <strong>{{ asset_status.missing_files|join:', ' }}</strong>.
+                {% if asset_status.has_idle %}
+                Missing frames will automatically fall back to <code>inara_idle.png</code> without breaking playback.
+                {% else %}
+                <code>inara_idle.png</code> is missing; fallback to built-in placeholder is active.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN: SETTINGS FORM -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="border-top: 4px solid #d4af37 !important;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0" style="color: #064e3b;">
+                        <i class="bi bi-sliders me-2" style="color: #d4af37;"></i>Avatar & Developer Identity
+                    </h5>
+                    <small class="text-muted">Changes saved here are instantly reflected across all course lessons.</small>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="">
+                        {% csrf_token %}
+
+                        <!-- Avatar Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">
+                                Avatar Real Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.avatar_name }}
+                            <div class="form-text small">
+                                The real name displayed visually on the screen and in captions (default: <strong>Inara</strong>).
+                            </div>
+                        </div>
+
+                        <!-- Developer Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">
+                                Developer Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.developer_name }}
+                            <div class="form-text small">
+                                The developer credited by Inara in the lesson introduction (e.g. <em>Tabinda Rukhsar</em>).
+                            </div>
+                        </div>
+
+                        <!-- University / Department -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">
+                                University or Department <span class="text-muted">(Optional)</span>
+                            </label>
+                            {{ form.university_or_department }}
+                            <div class="form-text small">
+                                Mentioned in the introduction: <em>"ALVIX was developed by {developer} at {university_or_department} as a final year project."</em> Leave empty if not applicable.
+                            </div>
+                        </div>
+
+                        <!-- Avatar Name Pronunciation -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">
+                                Avatar Speech Pronunciation <span class="text-muted">(Optional for TTS)</span>
+                            </label>
+                            {{ form.avatar_name_pronunciation }}
+                            <div class="form-text small">
+                                Phonetic spelling used <strong>ONLY for speech synthesis</strong> so the voice engine pronounces the name correctly (e.g. <code>ee-nah-rah</code>). The screen always displays the real name.
+                            </div>
+                        </div>
+
+                        <!-- Play Full Intro Every Day -->
+                        <div class="mb-4 p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="form-check form-switch">
+                                {{ form.play_full_intro_every_day }}
+                                <label class="form-check-label fw-bold text-dark small" for="{{ form.play_full_intro_every_day.id_for_label }}">
+                                    Play Full Introduction Every Day
+                                </label>
+                            </div>
+                            <div class="form-text small mt-1">
+                                Default is <strong>Off (False)</strong>: Day 1 plays the full introduction, while subsequent days play a quick greeting (<em>"Welcome back, {student}! Today we will learn..."</em>). Turn on to play the full introduction on every day.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn px-4 py-2 fw-bold shadow-sm rounded-pill" style="background: linear-gradient(135deg, #064E3B, #106E53); color: #D4AF37; border: 1.5px solid #D4AF37;">
+                                <i class="bi bi-save2-fill me-1"></i> Save Avatar Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: LIVE PREVIEW & ASSET CARDS -->
+        <div class="col-lg-6">
+            <!-- Intro Script Preview -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="border-top: 4px solid #064E3B !important;">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-success">
+                        <i class="bi bi-chat-quote-fill me-2 text-warning"></i>Live Introduction Script Preview
+                    </h6>
+                    <span class="badge bg-light text-dark border">Day 1 Masterclass</span>
+                </div>
+                <div class="card-body p-3">
+                    <div class="p-3 rounded-3 shadow-sm mb-3" style="background: #FEF9E7; border-left: 4px solid #D4AF37;">
+                        <span class="badge bg-dark text-warning small mb-2">On-Screen Caption Text</span>
+                        <p class="small text-dark mb-0 fw-medium" style="line-height: 1.6;">
+                            "Assalamu alaikum, {Student}! I am <strong>{{ avatar_settings.avatar_name }}</strong>, your AI teacher at ALVIX, the adaptive learning system with AI-driven content. ALVIX was developed by <strong>{{ avatar_settings.developer_name }}</strong>{% if avatar_settings.university_or_department %} at <strong>{{ avatar_settings.university_or_department }}</strong>{% endif %} as a final year project. In this course, Python Mastery, I will guide you step by step. Today, in Day 1, we will learn Introduction to Python. Let us begin!"
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-3 shadow-sm" style="background: #F0FDF4; border-left: 4px solid #16A34A;">
+                        <span class="badge bg-success text-white small mb-2">Spoken by TTS Voice</span>
+                        <p class="small text-dark mb-0 font-monospace" style="line-height: 1.6;">
+                            "Assalamu alaikum, {Student}! I am <span class="text-success fw-bold">{{ avatar_settings.get_spoken_name }}</span>, your AI teacher at ALVIX..."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Inspection Grid -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0" style="color: #064e3b;">
+                        <i class="bi bi-images me-2" style="color: #d4af37;"></i>Cartoon Frame Assets Status
+                    </h6>
+                    <span class="badge bg-secondary-subtle text-secondary small">512×512 Transparent PNG</span>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <!-- Frame 1: Idle -->
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded-3 text-center h-100 bg-light d-flex flex-column align-items-center justify-content-between">
+                                <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-dark text-warning small font-monospace">inara_idle.png</span>
+                                    {% if asset_status.file_status.idle.exists %}
+                                    <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check2"></i> Present</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger"><i class="bi bi-x"></i> Missing</span>
+                                    {% endif %}
+                                </div>
+                                <div class="my-2 p-2 rounded-3" style="background: linear-gradient(135deg, #064E3B, #022C22); border: 1px solid #D4AF37;">
+                                    {% if asset_status.file_status.idle.exists %}
+                                    <img src="{{ asset_status.file_status.idle.url }}" alt="Idle Pose" style="width: 80px; height: 80px; object-fit: contain;">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center text-white-50" style="width: 80px; height: 80px;">
+                                        <i class="bi bi-person-x fs-1"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted fw-semibold">Base Idle Pose (Closed Mouth)</small>
+                            </div>
+                        </div>
+
+                        <!-- Frame 2: Wave -->
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded-3 text-center h-100 bg-light d-flex flex-column align-items-center justify-content-between">
+                                <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-dark text-warning small font-monospace">inara_wave.png</span>
+                                    {% if asset_status.file_status.wave.exists %}
+                                    <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check2"></i> Present</span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning"><i class="bi bi-arrow-repeat"></i> Fallback</span>
+                                    {% endif %}
+                                </div>
+                                <div class="my-2 p-2 rounded-3" style="background: linear-gradient(135deg, #064E3B, #022C22); border: 1px solid #D4AF37;">
+                                    {% if asset_status.file_status.wave.exists %}
+                                    <img src="{{ asset_status.file_status.wave.url }}" alt="Wave Pose" style="width: 80px; height: 80px; object-fit: contain;">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center text-white-50" style="width: 80px; height: 80px;">
+                                        <i class="bi bi-hand-index-thumb fs-1"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted fw-semibold">Waving Intro Pose (One Hand Raised)</small>
+                            </div>
+                        </div>
+
+                        <!-- Frame 3: Blink -->
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded-3 text-center h-100 bg-light d-flex flex-column align-items-center justify-content-between">
+                                <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-dark text-warning small font-monospace">inara_blink.png</span>
+                                    {% if asset_status.file_status.blink.exists %}
+                                    <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check2"></i> Present</span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning"><i class="bi bi-arrow-repeat"></i> Fallback</span>
+                                    {% endif %}
+                                </div>
+                                <div class="my-2 p-2 rounded-3" style="background: linear-gradient(135deg, #064E3B, #022C22); border: 1px solid #D4AF37;">
+                                    {% if asset_status.file_status.blink.exists %}
+                                    <img src="{{ asset_status.file_status.blink.url }}" alt="Blink Pose" style="width: 80px; height: 80px; object-fit: contain;">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center text-white-50" style="width: 80px; height: 80px;">
+                                        <i class="bi bi-eye-slash fs-1"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted fw-semibold">Blink Frame (Eyes Closed)</small>
+                            </div>
+                        </div>
+
+                        <!-- Frame 4: Mouth Open -->
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded-3 text-center h-100 bg-light d-flex flex-column align-items-center justify-content-between">
+                                <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-dark text-warning small font-monospace">inara_mouth_open.png</span>
+                                    {% if asset_status.file_status.mouth_open.exists %}
+                                    <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check2"></i> Present</span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning"><i class="bi bi-arrow-repeat"></i> Fallback</span>
+                                    {% endif %}
+                                </div>
+                                <div class="my-2 p-2 rounded-3" style="background: linear-gradient(135deg, #064E3B, #022C22); border: 1px solid #D4AF37;">
+                                    {% if asset_status.file_status.mouth_open.exists %}
+                                    <img src="{{ asset_status.file_status.mouth_open.url }}" alt="Speaking Pose" style="width: 80px; height: 80px; object-fit: contain;">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center text-white-50" style="width: 80px; height: 80px;">
+                                        <i class="bi bi-chat-dots fs-1"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted fw-semibold">Speech Mouth Sync (Open Mouth)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock admin_content %}

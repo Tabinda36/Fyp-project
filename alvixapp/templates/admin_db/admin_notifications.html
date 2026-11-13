@@ -1,0 +1,274 @@
+{% extends "admin_db/admindashboard.html" %}
+{% load static %}
+
+{% block admin_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* --- Safe & Isolated Styling (ALVIX Theme) --- */
+.notification-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+    width: 100%;
+}
+
+/* Heading */
+.notification-wrapper .page-title {
+    color: #064e3b;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* --- Consistent Buttons --- */
+.notification-wrapper .btn-green {
+    background: #064e3b;
+    color: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(6, 78, 59, 0.15);
+}
+
+.notification-wrapper .btn-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.notification-wrapper .btn-green-outline {
+    background: transparent;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+}
+
+.notification-wrapper .btn-green-outline:hover {
+    background: #064e3b;
+    color: #ffffff;
+    border-color: #d4af37;
+}
+
+/* --- Form Fields --- */
+.notification-wrapper .form-control, 
+.notification-wrapper .form-select, 
+.notification-wrapper textarea {
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #064e3b;
+    font-weight: 500;
+}
+
+.notification-wrapper .form-control:focus, 
+.notification-wrapper .form-select:focus, 
+.notification-wrapper textarea:focus {
+    border-color: #064e3b;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+/* --- Generator Card (Top Section) --- */
+.notification-wrapper .generator-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+    margin-bottom: 40px;
+}
+
+/* --- History Section Card --- */
+.notification-wrapper .history-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+}
+
+.notification-wrapper .section-title {
+    color: #064e3b;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* --- Table with Golden Borders & Soft Green Touches --- */
+.notification-wrapper .table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #d4af37;
+}
+
+.notification-wrapper .table {
+    margin-bottom: 0;
+}
+
+.notification-wrapper .table th {
+    color: #064e3b;
+    font-weight: 800;
+    background: #f0fdf4;
+    border-bottom: 1.5px solid #d4af37;
+    padding: 12px 16px;
+}
+
+.notification-wrapper .table td {
+    color: #047857;
+    vertical-align: middle;
+    padding: 12px 16px;
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+/* --- Badges --- */
+.notification-wrapper .badge-sent {
+    background: #f0fdf4;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+</style>
+
+<div class="notification-wrapper container-fluid py-4">
+
+    <div class="border-bottom pb-3 mb-4" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+        <h2 class="page-title mb-1">🔔 Notifications Control Panel</h2>
+        <p class="mb-0" style="color: #047857; font-weight: 500;">Create and dispatch notifications directly to dynamic recipient categories.</p>
+    </div>
+
+    <!-- Generator Card -->
+    <div class="generator-card">
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <h4 class="section-title mb-0" style="font-size: 1.35rem;">✨ Generate & Send Notification</h4>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small" style="color: #047857;">Target Recipient</label>
+                    <select class="form-select" name="target_recipient" id="targetRecipientSelect" required onchange="toggleSpecificStudentDropdown()">
+                        <option value="">Select Recipient</option>
+                        <option value="all_students">All Students</option>
+                        <option value="enrolled_students">Enrolled Students Only</option>
+                        <option value="specific_student">Specific Student</option>
+                    </select>
+                </div>
+
+                <!-- Specific Student Dropdown (Initially Hidden) -->
+                <div class="col-md-4" id="specificStudentWrapper" style="display: none;">
+                    <label class="form-label fw-bold small" style="color: #047857;">Choose Student</label>
+                    <select class="form-select" name="specific_student_id" id="specificStudentSelect">
+                        <option value="">Select a student...</option>
+                        {% for student in students_list %}
+                            <option value="{{ student.id }}">{{ student.username }} {% if student.get_full_name %}({{ student.get_full_name }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small" style="color: #047857;">Category Type</label>
+                    <select class="form-select" name="category_type" required>
+                        <option value="">Notification Type</option>
+                        <option value="announcement">Announcement</option>
+                        <option value="course_update">Course Update</option>
+                        <option value="alert">Urgent Alert</option>
+                        <option value="reminder">Assignment / Quiz Reminder</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small" style="color: #047857;">Subject Heading</label>
+                    <input type="text" class="form-control" name="subject_heading" placeholder="Notification Subject" required>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-bold small" style="color: #047857;">Notification Body</label>
+                    <textarea rows="4" class="form-control" name="notification_body" placeholder="Type your dynamic announcement message here..." required></textarea>
+                </div>
+
+                <div class="col-md-3 mt-4">
+                    <button class="btn btn-green w-100 py-2" type="submit">
+                        <i class="bi bi-send-fill"></i> Dispatch Notification
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Dispatch History Section -->
+    <div class="history-card">
+        <h4 class="section-title">📜 Dispatch History</h4>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Target Recipient</th>
+                        <th>Category</th>
+                        <th>Date Sent</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in dispatch_history %}
+                    <tr>
+                        <td class="fw-bold" style="color: #064e3b;">{{ notification.subject_heading }}</td>
+                        <td>{{ notification.get_target_recipient_display }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ notification.get_category_type_display }}</span></td>
+                        <td>{{ notification.created_at|date:"d M Y, h:i A" }}</td>
+                        <td>
+                            <span class="badge-sent">Dispatched</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4" style="color: #047857;">
+                            <i class="bi bi-bell-slash fs-3 d-block mb-2" style="color: #d4af37;"></i>
+                            No notifications have been generated yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- JavaScript to toggle specific student dropdown -->
+<script>
+function toggleSpecificStudentDropdown() {
+    const selectElement = document.getElementById('targetRecipientSelect');
+    const wrapper = document.getElementById('specificStudentWrapper');
+    const studentSelect = document.getElementById('specificStudentSelect');
+
+    if (selectElement.value === 'specific_student') {
+        wrapper.style.display = 'block';
+        studentSelect.setAttribute('required', 'required');
+    } else {
+        wrapper.style.display = 'none';
+        studentSelect.removeAttribute('required');
+        studentSelect.value = '';
+    }
+}
+</script>
+{% endblock %}

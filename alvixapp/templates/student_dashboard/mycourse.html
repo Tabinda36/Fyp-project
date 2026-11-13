@@ -1,0 +1,882 @@
+{% extends 'student_dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* ========================================================
+       ALVIX MY COURSES - UNIFIED HORIZONTAL NAVBAR EXPERIENCE
+       ======================================================== */
+    .course-hub-wrapper {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #064e3b;
+    }
+
+    /* Course Hero Header Banner */
+    .course-hero-header {
+        background: linear-gradient(135deg, #022C22 0%, #064E3B 60%, #0A5C46 100%);
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 28px 32px;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(6, 78, 59, 0.25);
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .course-hero-header::after {
+        content: "\F4BC";
+        font-family: "bootstrap-icons";
+        position: absolute;
+        right: 15px;
+        bottom: -25px;
+        font-size: 8rem;
+        opacity: 0.08;
+        color: #D4AF37;
+        pointer-events: none;
+    }
+
+    /* ========================================================
+       HORIZONTAL SUB-NAVBAR (NAV TABS)
+       ======================================================== */
+    .course-horizontal-nav {
+        background: #ffffff;
+        border: 2px solid #D4AF37;
+        border-radius: 16px;
+        padding: 8px 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 28px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    .course-nav-link {
+        flex: 1 1 auto;
+        min-width: 140px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        color: #064e3b;
+        text-decoration: none;
+        background: transparent;
+        border: 1.5px solid transparent;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .course-nav-link i {
+        font-size: 1.15rem;
+        color: #047857;
+        transition: color 0.25s ease;
+    }
+
+    .course-nav-link:hover {
+        background: #f0fdf4;
+        color: #043e2e;
+        border-color: rgba(212, 175, 55, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .course-nav-link:hover i {
+        color: #D4AF37;
+    }
+
+    .course-nav-link.active {
+        background: linear-gradient(135deg, #064E3B 0%, #047857 100%) !important;
+        color: #ffffff !important;
+        border-color: #D4AF37 !important;
+        box-shadow: 0 4px 14px rgba(6, 78, 59, 0.28);
+    }
+
+    .course-nav-link.active i {
+        color: #D4AF37 !important;
+    }
+
+    /* Tab Content Area Container */
+    .tab-content-area {
+        background: #ffffff;
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+        min-height: 480px;
+    }
+
+    /* Syllabus & Topic Cards (Course Content Tab) */
+    .topic-card {
+        background: #ffffff;
+        border: 1.5px solid rgba(212, 175, 55, 0.45);
+        border-radius: 14px;
+        padding: 20px;
+        transition: all 0.25s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .topic-card:hover {
+        transform: translateY(-3px);
+        border-color: #D4AF37;
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+        background: #fafdfb;
+    }
+
+    .topic-number-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #f0fdf4;
+        border: 1.5px solid #D4AF37;
+        color: #064e3b;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    /* Lesson Cards (Lesson Plan Tab) */
+    .lesson-plan-card {
+        background: #ffffff;
+        border: 1.5px solid rgba(212, 175, 55, 0.4);
+        border-radius: 14px;
+        padding: 18px 22px;
+        transition: all 0.25s ease;
+        margin-bottom: 14px;
+    }
+
+    .lesson-plan-card:hover {
+        border-color: #D4AF37;
+        box-shadow: 0 6px 18px rgba(212, 175, 55, 0.14);
+        transform: translateX(3px);
+    }
+
+    .lesson-plan-card.completed {
+        background: #fcfefc;
+        border-left: 6px solid #10b981;
+    }
+
+    .lesson-plan-card.unlocked {
+        background: #ffffff;
+        border-left: 6px solid #D4AF37;
+    }
+
+    .lesson-plan-card.locked {
+        background: #f8fafc;
+        opacity: 0.75;
+        border-left: 6px solid #94a3b8;
+    }
+
+    /* Buttons */
+    .btn-alvix-green {
+        background: linear-gradient(135deg, #064E3B 0%, #047857 100%);
+        color: #ffffff !important;
+        border: 1.5px solid #D4AF37;
+        padding: 8px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13.5px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+    }
+
+    .btn-alvix-green:hover {
+        background: #033f2e;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+    }
+
+    .btn-alvix-outline {
+        background: transparent;
+        color: #064e3b !important;
+        border: 1.5px solid #D4AF37;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13.5px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+    }
+
+    .btn-alvix-outline:hover {
+        background: #064e3b;
+        color: #ffffff !important;
+        border-color: #D4AF37;
+    }
+
+    /* Progress bar */
+    .alvix-progress {
+        height: 18px;
+        border-radius: 12px;
+        background: #e2e8f0;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        overflow: hidden;
+    }
+
+    .alvix-progress-bar {
+        background: linear-gradient(90deg, #064e3b, #047857 60%, #D4AF37 100%);
+        font-size: 11px;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Badges */
+    .badge-tier {
+        background: #064e3b;
+        color: #D4AF37;
+        border: 1px solid #D4AF37;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .badge-gold {
+        background: #fefce8;
+        color: #854d0e;
+        border: 1px solid #D4AF37;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .badge-completed {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="course-hub-wrapper container-fluid px-0 py-2">
+
+    {% if active_course %}
+    <!-- 1. COURSE HERO HEADER STRIP -->
+    <div class="course-hero-header">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    {% if active_course.admin_course.course_code %}
+                    <span class="badge" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #064E3B; font-weight: 800; font-size: 0.82rem; border-radius: 20px; padding: 6px 14px;">
+                        <i class="bi bi-tag-fill me-1"></i>{{ active_course.admin_course.course_code }}
+                    </span>
+                    {% endif %}
+                    <span class="badge-tier">
+                        <i class="bi bi-mortarboard-fill text-warning me-1"></i>{{ active_course.course_level.benchmark|default:"Harvard / MIT / Stanford Standard" }}
+                    </span>
+                    <span class="badge-gold">
+                        <i class="bi bi-clock-history me-1"></i>{{ active_course.pace|default:"Standard Pace" }}
+                    </span>
+                </div>
+
+                <h1 class="h3 fw-bold text-white mb-2" style="letter-spacing: -0.3px;">
+                    {{ active_course.admin_course.title }}
+                </h1>
+                <p class="text-white-50 mb-0 small" style="max-width: 800px;">
+                    {{ active_course.objective|default:active_course.admin_course.description|default:"Personalized AI-powered curriculum tailored to your learning goals."|truncatewords:30 }}
+                </p>
+            </div>
+
+            <!-- Course Switcher (If student chose more than one course) -->
+            <div class="d-flex flex-column align-items-end gap-2">
+                {% if user_courses|length > 1 %}
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border border-warning dropdown-toggle fw-bold text-dark px-3 py-2 rounded-3 shadow-sm" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-arrow-left-right text-success me-1"></i> Switch Course ({{ user_courses|length }})
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border: 1.5px solid #D4AF37; min-width: 260px;">
+                        <li><h6 class="dropdown-header text-success fw-bold">My Enrolled Courses</h6></li>
+                        {% for uc in user_courses %}
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center justify-content-between {% if uc.id == active_course.id %}active bg-success text-white{% endif %}" href="?course_id={{ uc.id }}&tab={{ active_tab }}">
+                                <span class="fw-semibold text-truncate" style="max-width: 200px;">{{ uc.admin_course.title }}</span>
+                                {% if uc.id == active_course.id %}<i class="bi bi-check2"></i>{% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Quick Progress Widget -->
+                <div class="text-end" style="min-width: 170px;">
+                    <div class="d-flex justify-content-between small text-white-50 mb-1">
+                        <span>Overall Progress</span>
+                        <strong class="text-white">{{ progress_percentage }}%</strong>
+                    </div>
+                    <div class="alvix-progress">
+                        <div class="alvix-progress-bar" style="width: {{ progress_percentage }}%;">
+                            {% if progress_percentage > 10 %}{{ progress_percentage }}%{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. HORIZONTAL NAVBAR (SUB-NAVBAR BUTTONS IN A SINGLE HORIZONTAL LINE) -->
+    <nav class="course-horizontal-nav" id="courseHorizontalNavbar">
+        <a class="course-nav-link {% if active_tab == 'content' %}active{% endif %}" href="#course-content" data-tab-target="tab-content">
+            <i class="bi bi-book-half"></i>
+            <span>Course Content</span>
+        </a>
+
+        <a class="course-nav-link {% if active_tab == 'lessons' %}active{% endif %}" href="#lesson-plan" data-tab-target="tab-lessons">
+            <i class="bi bi-calendar3"></i>
+            <span>Lesson Plan</span>
+        </a>
+
+        <a class="course-nav-link {% if active_tab == 'assignment' %}active{% endif %}" href="#assignments" data-tab-target="tab-assignment">
+            <i class="bi bi-file-earmark-code"></i>
+            <span>Assignments</span>
+            {% if assignment_submissions %}
+            <span class="badge bg-light text-dark rounded-pill ms-1" style="font-size: 0.72rem;">{{ assignment_submissions|length }}</span>
+            {% endif %}
+        </a>
+
+        <a class="course-nav-link {% if active_tab == 'quiz' %}active{% endif %}" href="#quizzes" data-tab-target="tab-quiz">
+            <i class="bi bi-patch-question"></i>
+            <span>Quizzes</span>
+            {% if quiz_submissions %}
+            <span class="badge bg-light text-dark rounded-pill ms-1" style="font-size: 0.72rem;">{{ quiz_submissions|length }}</span>
+            {% endif %}
+        </a>
+
+        <a class="course-nav-link {% if active_tab == 'overview' %}active{% endif %}" href="#overview" data-tab-target="tab-overview">
+            <i class="bi bi-award"></i>
+            <span>Overview & Certificate</span>
+        </a>
+    </nav>
+
+    <!-- 3. BELOW THE NAVBAR: THESE OPTIONS ARE OPEN IN TAB CONTENT -->
+    <div class="tab-content-area" id="courseTabContentArea">
+
+        <!-- ================= OPTION 1: COURSE CONTENT ================= -->
+        <div class="course-tab-pane {% if active_tab == 'content' %}{% else %}d-none{% endif %}" id="pane-tab-content">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #064e3b;">
+                        <i class="bi bi-book-half me-2" style="color: #D4AF37;"></i>Course Syllabus & Learning Modules
+                    </h3>
+                    <p class="text-muted small mb-0">Explore complete chapter outlines, foundational topics, and learning objectives.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge-gold">
+                        <i class="bi bi-layers me-1"></i>{{ content_topics|length }} Core Syllabus Topics
+                    </span>
+                    <span class="badge-tier">
+                        <i class="bi bi-play-circle me-1"></i>{{ lessons|length }} Academic Lectures
+                    </span>
+                </div>
+            </div>
+
+            {% if content_topics %}
+            <div class="row g-3">
+                {% for topic in content_topics %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="topic-card">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="topic-number-badge">{{ forloop.counter }}</span>
+                                <span class="badge bg-light text-success border border-success-subtle small fw-bold">Unit {{ forloop.counter }}</span>
+                            </div>
+                            <h5 class="fw-bold mb-2" style="color: #064e3b; font-size: 1.05rem;">
+                                {% if topic.topic %}{{ topic.topic }}{% elif topic.title %}{{ topic.title }}{% else %}{{ topic }}{% endif %}
+                            </h5>
+                            
+                            {% if topic.study_bullets %}
+                            <ul class="list-unstyled small text-muted mb-3">
+                                {% for bullet in topic.study_bullets|slice:":4" %}
+                                <li class="d-flex align-items-start gap-2 mb-1">
+                                    <i class="bi bi-check2 text-success mt-1"></i>
+                                    <span>{{ bullet }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% elif topic.summary %}
+                            <p class="small text-muted mb-3">{{ topic.summary|truncatewords:20 }}</p>
+                            {% else %}
+                            <p class="small text-muted mb-3">Comprehensive study plan and hands-on exercises tailored to university standards.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="pt-2 border-top border-light d-flex justify-content-between align-items-center">
+                            {% with les=lessons|slice:":1" %}
+                                {% if les %}
+                                <a href="{% url 'daily_lesson' les.0.id %}" class="btn-alvix-green btn-sm w-100 justify-content-center">
+                                    <i class="bi bi-play-circle-fill"></i> Study Topic
+                                </a>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x fs-1 text-muted mb-2"></i>
+                <h5 class="text-muted fw-bold">Syllabus modules are currently being prepared.</h5>
+                <p class="small text-muted">You can begin directly with your daily lectures in the Lesson Plan tab.</p>
+                <button class="btn-alvix-green mt-2" onclick="switchToTab('tab-lessons')">
+                    <i class="bi bi-calendar3 me-1"></i> Open Lesson Plan
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ================= OPTION 2: LESSON PLAN ================= -->
+        <div class="course-tab-pane {% if active_tab == 'lessons' %}{% else %}d-none{% endif %}" id="pane-tab-lessons">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #064e3b;">
+                        <i class="bi bi-calendar3 me-2" style="color: #D4AF37;"></i>Daily Academic Lesson Roadmap
+                    </h3>
+                    <p class="text-muted small mb-0">Follow your day-by-day learning schedule with Inara, your AI teacher.</p>
+                </div>
+                <div>
+                    {% if today_lesson %}
+                    <a href="{% url 'daily_lesson' today_lesson.id %}" class="btn-alvix-green">
+                        <i class="bi bi-play-circle-fill"></i> Resume Current Lecture (Day {{ today_lesson.day_number }})
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if lessons %}
+            <div class="lesson-timeline-list">
+                {% for l in lessons %}
+                <div class="lesson-plan-card {% if l.is_completed %}completed{% elif l.is_unlocked %}unlocked{% else %}locked{% endif %}">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge" style="background: {% if l.is_completed %}#10b981{% elif l.is_unlocked %}#064e3b{% else %}#94a3b8{% endif %}; color: #ffffff; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 10px;">
+                                Day {{ l.day_number }}
+                            </span>
+                            <div>
+                                <h5 class="fw-bold mb-1" style="color: #064e3b;">
+                                    {{ l.title }}
+                                </h5>
+                                <div class="d-flex align-items-center gap-3 small text-muted flex-wrap">
+                                    <span>
+                                        <i class="bi bi-stopwatch text-success me-1"></i>Watch Time: <strong>{{ l.watch_time_seconds|default:0 }}s / {{ l.required_watch_seconds|default:180 }}s</strong>
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span>
+                                        {% if l.is_completed %}
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                        {% elif l.is_unlocked %}
+                                        <span class="text-warning fw-bold"><i class="bi bi-unlock-fill me-1"></i>Unlocked & In Progress</span>
+                                        {% else %}
+                                        <span class="text-secondary"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Controls for this Lesson -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a href="{% url 'download_lesson_ppt' l.id %}" class="btn btn-sm btn-outline-warning text-dark border-warning fw-bold px-3 py-2 rounded-3 shadow-sm" title="Download Lecture Slides PPT">
+                                <i class="bi bi-file-earmark-ppt-fill text-danger me-1"></i> PPT
+                            </a>
+
+                            <a href="{% url 'daily_lesson' l.id %}" class="btn-alvix-green btn-sm px-3 py-2">
+                                <i class="bi bi-play-circle-fill"></i> Start Lecture
+                            </a>
+
+                            <a href="{% url 'assignment_view' %}?lesson_id={{ l.id }}" class="btn-alvix-outline btn-sm px-3 py-2" title="Go to Assignment">
+                                <i class="bi bi-pencil-square"></i> Assignment
+                            </a>
+
+                            <a href="{% url 'quiz_view' %}?lesson_id={{ l.id }}" class="btn btn-sm btn-outline-secondary fw-semibold px-3 py-2 rounded-3" title="Go to Quiz">
+                                <i class="bi bi-patch-question"></i> Quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x fs-1 text-muted mb-2"></i>
+                <h5 class="text-muted fw-bold">No daily lectures found for this course.</h5>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ================= OPTION 3: ASSIGNMENTS ================= -->
+        <div class="course-tab-pane {% if active_tab == 'assignment' %}{% else %}d-none{% endif %}" id="pane-tab-assignment">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #064e3b;">
+                        <i class="bi bi-file-earmark-code me-2" style="color: #D4AF37;"></i>Hands-on Course Assignments
+                    </h3>
+                    <p class="text-muted small mb-0">Practical tasks, coding challenges, and AI evaluations.</p>
+                </div>
+                <div>
+                    {% if today_lesson %}
+                    <a href="{% url 'assignment_view' %}?lesson_id={{ today_lesson.id }}" class="btn-alvix-green">
+                        <i class="bi bi-pencil-square me-1"></i> Open Assignment Workspace (Day {{ today_lesson.day_number }})
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Active Assignment Challenge Card -->
+            {% if today_lesson %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: #fafdfb; border: 1.5px solid #D4AF37 !important;">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <span class="badge" style="background: #064e3b; color: #D4AF37; padding: 6px 14px; border-radius: 20px; font-weight: 700;">
+                        Active Challenge: Day {{ today_lesson.day_number }} - {{ today_lesson.title }}
+                    </span>
+                    <span class="small text-muted">
+                        <i class="bi bi-clock me-1"></i>Deadline: <strong>{{ today_lesson.deadline|date:"d M Y, h:i A"|default:"2 Days from start" }}</strong>
+                    </span>
+                </div>
+                
+                <h5 class="fw-bold mb-2" style="color: #064e3b;">Assignment Prompt:</h5>
+                <div class="p-3 bg-white rounded-3 border mb-3" style="font-size: 0.95rem; line-height: 1.6; color: #1e293b;">
+                    {{ today_lesson.task.assignment_question|default:"Complete the practical programming task and review questions for this lesson as instructed by Inara."|linebreaks }}
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'assignment_view' %}?lesson_id={{ today_lesson.id }}" class="btn-alvix-green">
+                        <i class="bi bi-upload me-1"></i> Submit Solution & Run AI Rubric
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Submissions History Table -->
+            <h5 class="fw-bold mb-3" style="color: #064e3b;">
+                <i class="bi bi-clock-history me-1 text-warning"></i>Your Assignment Submissions History
+            </h5>
+            <div class="table-responsive rounded-3 border" style="border-color: rgba(212, 175, 55, 0.4) !important;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background: #f0fdf4; border-bottom: 2px solid #D4AF37;">
+                        <tr>
+                            <th class="py-3 ps-3">Lesson / Day</th>
+                            <th class="py-3">Submission Preview</th>
+                            <th class="py-3">Marks</th>
+                            <th class="py-3">AI Evaluation</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3 text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in assignment_submissions %}
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: #064e3b;">
+                                Day {{ sub.lesson.day_number|default:"-" }}: {{ sub.lesson.title|default:"Assignment" }}
+                            </td>
+                            <td>
+                                <span class="small text-muted d-inline-block text-truncate" style="max-width: 250px;">
+                                    {{ sub.submitted_answer|default:"File Submission"|truncatechars:60 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-6">
+                                    {{ sub.marks|default:sub.score }}/{{ sub.total_marks|default:10 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ sub.ai_feedback|default:"Evaluated against rubric"|truncatechars:45 }}</span>
+                            </td>
+                            <td class="small text-muted">{{ sub.submitted_at|date:"d M Y, h:i A" }}</td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'download_assignment_pdf' sub.id %}" class="btn btn-sm btn-outline-success fw-bold">
+                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-3 d-block mb-1 text-warning"></i>
+                                No assignment submissions yet. Click "Open Assignment Workspace" above to complete your first task!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 4: QUIZZES ================= -->
+        <div class="course-tab-pane {% if active_tab == 'quiz' %}{% else %}d-none{% endif %}" id="pane-tab-quiz">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #064e3b;">
+                        <i class="bi bi-patch-question me-2" style="color: #D4AF37;"></i>Diagnostic Concept Quizzes
+                    </h3>
+                    <p class="text-muted small mb-0">Test your mastery with instant scoring and detailed AI explanations.</p>
+                </div>
+                <div>
+                    {% if today_lesson %}
+                    <a href="{% url 'quiz_view' %}?lesson_id={{ today_lesson.id }}" class="btn-alvix-green">
+                        <i class="bi bi-patch-check-fill me-1"></i> Take Today's Quiz (Day {{ today_lesson.day_number }})
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quiz Attempts History Table -->
+            <div class="table-responsive rounded-3 border" style="border-color: rgba(212, 175, 55, 0.4) !important;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background: #f0fdf4; border-bottom: 2px solid #D4AF37;">
+                        <tr>
+                            <th class="py-3 ps-3">Lesson / Day</th>
+                            <th class="py-3">Score Obtained</th>
+                            <th class="py-3">Percentage</th>
+                            <th class="py-3">Date Completed</th>
+                            <th class="py-3 text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in quiz_submissions %}
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: #064e3b;">
+                                Day {{ q.lesson.day_number|default:"-" }}: {{ q.lesson.title|default:"Quiz" }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border fs-6 fw-bold">
+                                    {{ q.score }} / {{ q.total_questions }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if q.percentage >= 80 %}bg-success{% elif q.percentage >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill px-3 py-1">
+                                    {{ q.percentage }}%
+                                </span>
+                            </td>
+                            <td class="small text-muted">{{ q.submitted_at|date:"d M Y, h:i A" }}</td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'quiz_view' %}?lesson_id={{ q.lesson.id }}" class="btn btn-sm btn-outline-success fw-bold">
+                                    <i class="bi bi-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-question-circle fs-3 d-block mb-1 text-warning"></i>
+                                No quiz attempts recorded yet. Click "Take Today's Quiz" to assess your learning!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 5: OVERVIEW & CERTIFICATE ================= -->
+        <div class="course-tab-pane {% if active_tab == 'overview' %}{% else %}d-none{% endif %}" id="pane-tab-overview">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #064e3b;">
+                        <i class="bi bi-award me-2" style="color: #D4AF37;"></i>Course Overview & Official Certificate
+                    </h3>
+                    <p class="text-muted small mb-0">Review your overall standing, AI teacher profile, and verified completion credentials.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left: Course Card Info -->
+                <div class="col-lg-6">
+                    <div class="card h-100 p-4 border-0 rounded-4 shadow-sm" style="border: 1.5px solid #D4AF37 !important;">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-3 overflow-hidden" style="width: 80px; height: 80px; background: #064e3b; border: 1.5px solid #D4AF37;">
+                                {% if active_course.admin_course.image %}
+                                <img src="{{ active_course.admin_course.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ active_course.admin_course.title }}">
+                                {% else %}
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-warning fs-2">
+                                    <i class="bi bi-mortarboard-fill"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1" style="color: #064e3b;">{{ active_course.admin_course.title }}</h5>
+                                <span class="badge-tier">{{ active_course.course_level.benchmark|default:"Harvard Standard" }}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small mb-3">
+                            {{ active_course.objective|default:active_course.admin_course.description }}
+                        </p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>Weighted Course Completion</span>
+                                <strong class="text-success">{{ progress_percentage }}%</strong>
+                            </div>
+                            <div class="alvix-progress">
+                                <div class="alvix-progress-bar" style="width: {{ progress_percentage }}%;">{{ progress_percentage }}%</div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mt-2" style="font-size: 0.76rem;">
+                                <span>Watch Time (40%)</span>
+                                <span>Assignments (30%)</span>
+                                <span>Quizzes (30%)</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'course_content' %}?course_id={{ active_course.id }}" class="btn-alvix-outline btn-sm flex-fill justify-content-center">
+                                <i class="bi bi-book"></i> Full Syllabus
+                            </a>
+                            <a href="{% url 'daily_lesson' %}" class="btn-alvix-green btn-sm flex-fill justify-content-center">
+                                <i class="bi bi-play-circle"></i> Continue Learning
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Certificate Card -->
+                <div class="col-lg-6">
+                    <div class="card h-100 p-4 border-0 rounded-4 shadow-sm text-center d-flex flex-column justify-content-between" style="border: 2px solid #D4AF37 !important; background: linear-gradient(180deg, #ffffff 0%, #fefce8 100%);">
+                        <div>
+                            <div class="mx-auto mb-3" style="width: 70px; height: 70px; border-radius: 50%; background: #064e3b; border: 2px solid #D4AF37; display: flex; align-items: center; justify-content: center; color: #D4AF37; font-size: 2rem;">
+                                <i class="bi bi-patch-check-fill"></i>
+                            </div>
+
+                            <h4 class="fw-bold mb-1" style="color: #064e3b;">Course Completion Certificate</h4>
+                            <p class="small text-muted mb-4">Official ALVIX Adaptive Learning Certification verified with cryptographic QR credentials.</p>
+
+                            {% if certificate and certificate.is_unlocked %}
+                            <div class="alert alert-success border-success text-start small mb-3">
+                                <strong>🎉 Congratulations!</strong> You have fulfilled all course requirements and earned your verified credential.
+                            </div>
+                            {% else %}
+                            <div class="p-3 bg-white rounded-3 border border-warning text-start small mb-3">
+                                <div class="fw-bold text-dark mb-1"><i class="bi bi-shield-lock text-warning me-1"></i>Unlock Requirements:</div>
+                                <ul class="list-unstyled mb-0 text-muted" style="font-size: 0.8rem;">
+                                    <li>&bull; Complete all daily video lectures (180s minimum watch time each)</li>
+                                    <li>&bull; Submit all course assignments with passing evaluation</li>
+                                    <li>&bull; Pass all diagnostic concept quizzes with at least 70% score</li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if certificate and certificate.is_unlocked %}
+                            <a href="{% url 'certificate' active_course.id %}" target="_blank" class="btn-alvix-green w-100 py-2 justify-content-center">
+                                <i class="bi bi-award-fill"></i> View & Download Official Certificate
+                            </a>
+                            {% else %}
+                            <a href="{% url 'certificate' active_course.id %}" class="btn btn-outline-secondary w-100 py-2 fw-bold" style="border-radius: 10px;">
+                                <i class="bi bi-lock-fill me-1"></i> Check Certificate Status
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% else %}
+    <!-- Fallback if student has not enrolled in any course yet -->
+    <div class="card p-5 text-center border-0 rounded-4 shadow-sm" style="border: 2px solid #D4AF37 !important; background: #ffffff;">
+        <i class="bi bi-mortarboard" style="font-size: 54px; color: #D4AF37;"></i>
+        <h3 class="fw-bold mt-3" style="color: #064e3b;">No Course Enrolled Yet</h3>
+        <p class="text-muted" style="max-width: 550px; margin: 0 auto 20px auto;">
+            You have not chosen any course yet. Pick from our curated Harvard, MIT, and Stanford benchmarked courses to begin your personalized learning path.
+        </p>
+        <div>
+            <a href="{% url 'suggested_courses' %}" class="btn-alvix-green px-4 py-2">
+                <i class="bi bi-stars me-1 text-warning"></i> Choose Your Course
+            </a>
+            <a href="{% url 'generate_course' %}" class="btn-alvix-outline px-4 py-2 ms-2">
+                <i class="bi bi-plus-circle me-1"></i> Browse Catalog
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- JavaScript to Handle Fluid Horizontal Navbar Switching & URL Sync -->
+<script>
+function switchToTab(tabId) {
+    // 1. Remove active state from all nav links
+    const navLinks = document.querySelectorAll('.course-nav-link');
+    navLinks.forEach(link => {
+        if (link.getAttribute('data-tab-target') === tabId) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // 2. Hide all tab panes and show the selected pane below the navbar
+    const panes = document.querySelectorAll('.course-tab-pane');
+    panes.forEach(pane => {
+        if (pane.id === 'pane-' + tabId) {
+            pane.classList.remove('d-none');
+        } else {
+            pane.classList.add('d-none');
+        }
+    });
+
+    // 3. Update URL hash cleanly
+    const hashMap = {
+        'tab-content': '#course-content',
+        'tab-lessons': '#lesson-plan',
+        'tab-assignment': '#assignments',
+        'tab-quiz': '#quizzes',
+        'tab-overview': '#overview'
+    };
+    if (hashMap[tabId] && history.replaceState) {
+        history.replaceState(null, null, hashMap[tabId]);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click listeners to horizontal navbar links
+    const navLinks = document.querySelectorAll('.course-nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.getAttribute('data-tab-target');
+            if (targetTab) {
+                switchToTab(targetTab);
+            }
+        });
+    });
+
+    // Handle hash on initial page load if present
+    const hash = window.location.hash;
+    if (hash === '#lesson-plan' || hash === '#lessons') {
+        switchToTab('tab-lessons');
+    } else if (hash === '#assignments' || hash === '#assignment') {
+        switchToTab('tab-assignment');
+    } else if (hash === '#quizzes' || hash === '#quiz') {
+        switchToTab('tab-quiz');
+    } else if (hash === '#overview' || hash === '#certificate') {
+        switchToTab('tab-overview');
+    } else if (hash === '#course-content' || hash === '#content') {
+        switchToTab('tab-content');
+    }
+});
+</script>
+{% endblock content %}

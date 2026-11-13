@@ -1,0 +1,1137 @@
+{% extends "admin_db/admindashboard.html" %}
+{% load static %}
+
+{% block admin_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    background: #f8fafc;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+}
+
+.content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Master Header Card */
+.master-header-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    padding: 28px;
+    margin-bottom: 24px;
+}
+
+.benchmark-badge-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.badge-harvard {
+    background: linear-gradient(135deg, #A51C30, #701020);
+    color: #ffffff;
+    border: 1px solid #d4af37;
+}
+
+.badge-mit {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #38bdf8;
+    border: 1.5px solid #38bdf8;
+}
+
+.badge-stanford {
+    background: linear-gradient(135deg, #8C1515, #4c0808);
+    color: #ffffff;
+    border: 1px solid #d4af37;
+}
+
+/* KPI Cards */
+.kpi-stat-card {
+    background: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 14px;
+    padding: 18px 20px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.08);
+}
+
+.kpi-icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: #064e3b;
+    color: #d4af37;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+/* Nav Tabs */
+.nav-tabs-academic {
+    border-bottom: 2px solid #d4af37 !important;
+    gap: 8px;
+}
+
+.nav-tabs-academic .nav-link {
+    border: 1.5px solid transparent;
+    border-radius: 12px 12px 0 0;
+    font-weight: 700;
+    color: #064e3b;
+    padding: 12px 22px;
+    background: #ffffff;
+    border-color: #e2e8f0 #e2e8f0 transparent;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs-academic .nav-link:hover {
+    border-color: #d4af37 #d4af37 transparent;
+    color: #064e3b;
+}
+
+.nav-tabs-academic .nav-link.active {
+    background: #064e3b !important;
+    color: #ffffff !important;
+    border-color: #d4af37 #d4af37 transparent !important;
+    box-shadow: 0 -2px 10px rgba(6, 78, 59, 0.15);
+}
+
+/* Module Container */
+.module-block {
+    background: #ffffff;
+    border: 1.8px solid #d4af37;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.module-header {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-bottom: 1.5px solid rgba(212, 175, 55, 0.3);
+    padding: 18px 24px;
+}
+
+.lesson-card-item {
+    border: 1.5px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.lesson-card-item:hover {
+    border-color: #d4af37;
+}
+
+.lesson-btn-trigger {
+    background: #ffffff;
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    color: #064e3b;
+}
+
+.lesson-btn-trigger:not(.collapsed) {
+    background: #f0fdf4;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Slide Cards in Deck */
+.slide-grid-card {
+    background: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 14px;
+    padding: 20px;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.slide-grid-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(212, 175, 55, 0.2);
+}
+
+.slide-num-pill {
+    background: #064e3b;
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 8px;
+}
+
+.speaker-notes-box {
+    background: #f8fafc;
+    border-left: 3px solid #d4af37;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.code-preview-box {
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.visual-preview-box {
+    background: #09130e;
+    color: #34d399;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Buttons */
+.btn-regen-ai {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    color: #064e3b;
+    border: 1px solid #064e3b;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-regen-ai:hover {
+    background: linear-gradient(135deg, #e6c158, #c49615);
+    color: #043e2e;
+    transform: translateY(-1px);
+}
+
+.btn-nav-green {
+    background: #064e3b;
+    color: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-nav-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+}
+
+.btn-nav-outline {
+    background: transparent;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-nav-outline:hover {
+    background: #064e3b;
+    color: #ffffff;
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="content-wrapper">
+
+        <!-- Top Navigation Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <a href="{% url 'courses_info' %}" class="btn-nav-outline">
+                <i class="bi bi-arrow-left"></i> Back to Courses
+            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <!-- Regenerate Deep AI Content Action -->
+                <a href="{% url 'admin_regenerate_deep_curriculum' course_level.slug %}" class="btn-regen-ai" onclick="return confirm('Trigger deep AI regeneration with Gemini? This will synthesize an exhaustive multi-module curriculum and 20+ slide lecture deck.');">
+                    <i class="bi bi-stars"></i> Regenerate Deep AI Curriculum
+                </a>
+                <a href="{% url 'admin_course_level_users' course_level.slug %}" class="btn-nav-green">
+                    <i class="bi bi-people-fill"></i> View Enrolled Students ({{ enrolled_count }})
+                </a>
+            </div>
+        </div>
+
+        <!-- Master Course & University Benchmark Header -->
+        <div class="master-header-card">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                        {% if course_level.level == 'Beginner' %}
+                            <span class="benchmark-badge-lg badge-harvard">
+                                🏛️ Harvard CS50 Philosophy (Beginner)
+                            </span>
+                        {% elif course_level.level == 'Intermediate' %}
+                            <span class="benchmark-badge-lg badge-mit">
+                                🏛️ MIT Data Structures & Logic (Intermediate)
+                            </span>
+                        {% else %}
+                            <span class="benchmark-badge-lg badge-stanford">
+                                🏛️ Stanford & CMU Systems & AI (Advanced)
+                            </span>
+                        {% endif %}
+                        <span class="badge" style="background: #064e3b; color: #d4af37; border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
+                            Unrestricted Academic Scale
+                        </span>
+                        {% if course_level.level_code %}
+                            <span class="badge bg-secondary-subtle text-secondary fw-bold" style="border-radius: 10px; padding: 6px 12px; font-size: 0.78rem;">
+                                {{ course_level.level_code }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="fw-bold mb-2" style="color: #064e3b;">
+                        {{ course_level.title }}
+                    </h2>
+                    <p class="text-muted mb-3" style="line-height: 1.6; font-size: 0.95rem;">
+                        {{ course_level.benchmark_description }}
+                    </p>
+
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="small fw-semibold text-muted">
+                            Master Course: <strong>{{ parent_course.title }}</strong>
+                        </span>
+                        <span class="text-muted">&bull;</span>
+                        <span class="small fw-semibold text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i> Pre-generated & Fully Cached in DB
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 text-center">
+                    {% if parent_course.image %}
+                        <img src="{{ parent_course.image.url }}" class="img-fluid rounded-3 shadow-sm" style="max-height: 160px; object-fit: cover; border: 2px solid #d4af37;" alt="{{ course_level.title }}">
+                    {% else %}
+                        <div class="p-4 rounded-3 d-flex flex-column align-items-center justify-content-center" style="background: linear-gradient(135deg, #064e3b, #047857); height: 150px; border: 2px solid #d4af37;">
+                            <i class="bi bi-mortarboard display-5" style="color: #d4af37;"></i>
+                            <span class="text-white small fw-bold mt-2">{{ course_level.level }} Master Tier</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Scale KPI Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold">Academic Modules</div>
+                        <h4 class="fw-bold mb-0" style="color: #064e3b;">{{ total_modules }} Modules</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-journal-code"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold">Comprehensive Lessons</div>
+                        <h4 class="fw-bold mb-0" style="color: #064e3b;">{{ total_lessons }} Deep Lessons</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-file-earmark-slides-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold">Lecture Presentation Deck</div>
+                        <h4 class="fw-bold mb-0" style="color: #064e3b;">{{ total_slides }} Slides</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold">Enrolled Students</div>
+                        <h4 class="fw-bold mb-0" style="color: #064e3b;">{{ enrolled_count }} Students</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Hierarchy Tabs -->
+        <ul class="nav nav-tabs nav-tabs-academic mb-4" id="academicTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="curriculum-tab" data-bs-toggle="tab" data-bs-target="#curriculumPane" type="button" role="tab">
+                    <i class="bi bi-layers-half me-1 text-warning"></i> 1. Modular Curriculum & Deep Lessons ({{ total_modules }} Modules &bull; {{ total_lessons }} Lessons)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="daily-tab" data-bs-toggle="tab" data-bs-target="#dailyPane" type="button" role="tab">
+                    <i class="bi bi-play-btn-fill me-1 text-warning"></i> 2. Daily Lessons, Video Player & Assessments ({{ daily_lessons.count }} Days)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="slides-tab" data-bs-toggle="tab" data-bs-target="#slidesPane" type="button" role="tab">
+                    <i class="bi bi-file-earmark-slides-fill me-1 text-warning"></i> 3. University Lecture Deck ({{ total_slides }} Slides Outline)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#auditPane" type="button" role="tab">
+                    <i class="bi bi-shield-check me-1 text-warning"></i> 4. Pedagogical Audit & Student Sync
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="academicTabContent">
+
+            <!-- TAB 1: MODULAR CURRICULUM & DEEP LESSONS -->
+            <div class="tab-pane fade show active" id="curriculumPane" role="tabpanel">
+                <!-- Tab 1 Controls Toolbar -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle me-1 text-success"></i> Topics are collapsed by default. Click any topic headline to expand full reading, code blueprints, and lab tasks.
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-semibold shadow-sm" id="btnToggleAllCurriculum" onclick="toggleAllCurriculumLessons();">
+                            <i class="bi bi-arrows-expand me-1" id="iconToggleAllCurriculum"></i> <span id="textToggleAllCurriculum">Expand All Topics</span>
+                        </button>
+                    </div>
+                </div>
+
+                {% for module in modules %}
+                <div class="module-block">
+                    <!-- Module Header -->
+                    <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="badge" style="background: #064e3b; color: #d4af37; border: 1px solid #d4af37; font-size: 0.75rem; font-weight: 800; border-radius: 8px;">
+                                MODULE {{ module.order }}
+                            </span>
+                            <h4 class="fw-bold mt-2 mb-1" style="color: #064e3b;">{{ module.title }}</h4>
+                            <p class="text-muted small mb-0">{{ module.description }}</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-dark border fw-bold">
+                                <i class="bi bi-clock me-1 text-warning"></i> ~{{ module.estimated_hours }} Hours
+                            </span>
+                            <span class="badge bg-success-subtle text-success fw-bold">
+                                {{ module.lessons.count }} Deep Lessons
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Lessons Inside This Module -->
+                    <div class="p-3 p-md-4">
+                        {% for lesson in module.lessons.all %}
+                        <div class="lesson-card-item">
+                            <!-- Accordion Header -->
+                            <button class="lesson-btn-trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#lessonCollapse{{ lesson.id }}" aria-expanded="false">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge" style="background: #064e3b; color: #d4af37; border-radius: 8px; font-size: 0.8rem; padding: 6px 10px;">
+                                        L{{ lesson.order }}
+                                    </span>
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-success" style="font-size: 1.05rem;">{{ lesson.title }}</h5>
+                                        <span class="small text-muted">{{ lesson.summary }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border small fw-semibold">
+                                        {{ lesson.estimated_minutes }} mins
+                                    </span>
+                                    <i class="bi bi-chevron-down fs-6 text-muted"></i>
+                                </div>
+                            </button>
+
+                            <!-- Accordion Body -->
+                            <div id="lessonCollapse{{ lesson.id }}" class="collapse">
+                                <div class="p-4" style="background: #ffffff;">
+                                    
+                                    <!-- Long-form Textbook Reading Material -->
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                            <i class="bi bi-book-fill text-warning me-1"></i> Core Long-form Reading Material
+                                        </h6>
+                                        <div class="p-3 rounded-3" style="background: #fbfcfd; border: 1px solid rgba(212, 175, 55, 0.25);">
+                                            {{ lesson.reading_content|safe }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Code Architecture Blueprints -->
+                                    {% if lesson.code_examples %}
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                            <i class="bi bi-code-slash text-info me-1"></i> Production Code Blueprints
+                                        </h6>
+                                        {% for code_ex in lesson.code_examples %}
+                                        <div class="mb-3 rounded-3 overflow-hidden" style="border: 1.5px solid rgba(212, 175, 55, 0.4);">
+                                            <div class="px-3 py-2 bg-dark text-white d-flex justify-content-between align-items-center small">
+                                                <span class="fw-bold" style="color: #d4af37;"><i class="bi bi-file-earmark-code me-1"></i>{{ code_ex.title|default:"Code Architecture" }}</span>
+                                                <span class="badge bg-secondary-subtle text-secondary font-monospace">Python/Enterprise</span>
+                                            </div>
+                                            <pre class="mb-0 p-3" style="background: #0f172a; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto;">{{ code_ex.code }}</pre>
+                                            {% if code_ex.explanation %}
+                                            <div class="p-2 bg-light text-muted small border-top">
+                                                <strong>Analysis:</strong> {{ code_ex.explanation }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Real-World Enterprise Use Cases -->
+                                    {% if lesson.use_cases %}
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                            <i class="bi bi-building-check text-success me-1"></i> Enterprise & Industry Use Cases
+                                        </h6>
+                                        <div class="row g-2">
+                                            {% for uc in lesson.use_cases %}
+                                            <div class="col-12">
+                                                <div class="p-3 rounded-3" style="background: rgba(6, 78, 59, 0.04); border-left: 4px solid #064e3b;">
+                                                    <div class="fw-bold small text-dark mb-1"><i class="bi bi-gear-wide-connected me-1"></i>{{ uc.scenario }}</div>
+                                                    <p class="small text-muted mb-0">{{ uc.solution }}</p>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Assessment: Engineering Lab Challenge & Diagnostic Quiz -->
+                                    <div class="row g-3 pt-3 border-top" style="border-color: rgba(212, 175, 55, 0.25) !important;">
+                                        <!-- Assignment Box -->
+                                        <div class="col-lg-6">
+                                            <div class="p-3 rounded-3 h-100" style="background: #f8fafc; border: 1.5px solid #d4af37;">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fw-bold" style="color: #064e3b;">
+                                                        <i class="bi bi-pencil-square text-warning me-1"></i> Engineering Lab Challenge
+                                                    </span>
+                                                    <span class="badge bg-warning-subtle text-dark small">Rigorous Task</span>
+                                                </div>
+                                                <p class="small text-muted mb-2" style="white-space: pre-line; line-height: 1.6;">
+                                                    {{ lesson.assignment_prompt }}
+                                                </p>
+                                                {% if lesson.assignment_rubric %}
+                                                <div class="p-2 rounded-2 mt-2" style="background: #ffffff; border: 1px dashed #d4af37; font-size: 0.78rem; color: #475569;">
+                                                    <strong>Grading Rubric:</strong>
+                                                    <div style="white-space: pre-line;">{{ lesson.assignment_rubric }}</div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Diagnostic Quiz Box -->
+                                        <div class="col-lg-6">
+                                            <div class="p-3 rounded-3 h-100" style="background: #f8fafc; border: 1.5px solid #d4af37;">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fw-bold" style="color: #064e3b;">
+                                                        <i class="bi bi-patch-question-fill text-success me-1"></i> Diagnostic Assessment Quiz
+                                                    </span>
+                                                    <span class="badge bg-success-subtle text-success small">5 Questions</span>
+                                                </div>
+                                                
+                                                {% if lesson.quiz_data %}
+                                                <div class="accordion accordion-flush" id="quizAcc{{ lesson.id }}">
+                                                    {% for q in lesson.quiz_data %}
+                                                    <div class="accordion-item bg-transparent border-0 mb-2">
+                                                        <div class="small fw-bold text-dark mb-1">
+                                                            Q{{ forloop.counter }}: {{ q.question }}
+                                                        </div>
+                                                        <div class="ps-2 small text-muted" style="border-left: 2px solid #064e3b;">
+                                                            {% for opt in q.options %}
+                                                            <div class="{% if forloop.counter0 == q.correct_answer %}text-success fw-bold{% endif %}">
+                                                                &bull; {{ opt }} {% if forloop.counter0 == q.correct_answer %}✓{% endif %}
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% if q.explanation %}
+                                                        <div class="small text-muted mt-1 fst-italic ps-2" style="font-size: 0.75rem;">
+                                                            Why: {{ q.explanation }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% else %}
+                                                <p class="small text-muted mb-0">Diagnostic quizzes mapped to this lesson.</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted small">No lessons in this module yet.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="card p-5 text-center shadow-sm" style="border: 2px dashed #d4af37; border-radius: 16px;">
+                    <i class="bi bi-layers text-warning display-4 mb-3"></i>
+                    <h4 class="fw-bold" style="color: #064e3b;">Curriculum Awaiting Deep Generation</h4>
+                    <p class="text-muted mb-3">Click the button below to dynamically synthesize the exhaustive multi-module curriculum with Gemini AI.</p>
+                    <a href="{% url 'admin_regenerate_deep_curriculum' course_level.slug %}" class="btn-regen-ai d-inline-block">
+                        <i class="bi bi-stars"></i> Generate Deep University Curriculum
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- TAB 2: DAILY LESSONS, VIDEO PLAYERS & ASSESSMENTS (ADMIN MODE) -->
+            <div class="tab-pane fade" id="dailyPane" role="tabpanel">
+                <div class="card p-4 shadow-sm mb-4" style="border: 2px solid #d4af37; border-radius: 16px; background: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 border-bottom pb-3">
+                        <div>
+                            <h4 class="fw-bold mb-1" style="color: #064e3b;">
+                                <i class="bi bi-play-btn-fill text-warning me-2"></i>Daily Lessons, Video Lectures & Diagnostic Assessments
+                            </h4>
+                            <p class="text-muted small mb-0">
+                                Pre-generated canonical university syllabus. Content details are collapsed by default—click any lesson topic to view video preview, full syllabus, assignment, and quiz.
+                            </p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-semibold shadow-sm" id="btnToggleAllDaily" onclick="toggleAllDailyLessons();">
+                                <i class="bi bi-arrows-expand me-1" id="iconToggleAllDaily"></i> <span id="textToggleAllDaily">Expand All Daily Topics</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {% for d_lesson in daily_lessons %}
+                    <div class="card p-3 p-md-4 mb-3 shadow-sm daily-lesson-card" style="border: 1.8px solid #d4af37; border-radius: 16px; background: #fafaf9;">
+                        <!-- Lesson Header Bar (Main Topic Always Visible) -->
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <button class="btn p-0 text-start border-0 bg-transparent daily-topic-btn daily-lesson-trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dailyCollapse{{ d_lesson.id }}" aria-expanded="false" style="cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge" style="background: #064e3b; color: #d4af37; border: 1px solid #d4af37; font-weight: 800; font-size: 0.8rem; border-radius: 20px; padding: 5px 12px;">
+                                            DAY {{ d_lesson.day_number }}
+                                        </span>
+                                        <i class="bi bi-chevron-down text-muted fs-6 daily-chevron"></i>
+                                    </div>
+                                    <h5 class="fw-bold mt-1 mb-0 text-success" style="font-size: 1.1rem;">{{ d_lesson.title }}</h5>
+                                    <span class="small text-muted">
+                                        <i class="bi bi-diagram-2 me-1"></i>Module: <strong>{{ d_lesson.module.title|default:"Core Principles & Mechanics" }}</strong>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                {% if d_lesson.ppt_file %}
+                                <span class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-file-earmark-check-fill me-1"></i> Custom PPT Loaded</span>
+                                {% endif %}
+                                <a href="{% url 'download_lesson_ppt' d_lesson.id %}" class="btn btn-sm btn-nav-outline" title="Download Presentation"><i class="bi bi-file-earmark-ppt"></i> PPT</a>
+                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill fw-semibold text-dark" data-bs-toggle="modal" data-bs-target="#uploadPptModal{{ d_lesson.id }}" title="Upload Custom PPT & Generate Audio">
+                                    <i class="bi bi-cloud-arrow-up-fill text-warning me-1"></i>Upload PPT
+                                </button>
+                                <button class="btn btn-sm btn-outline-success rounded-pill fw-semibold daily-lesson-trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dailyCollapse{{ d_lesson.id }}" aria-expanded="false">
+                                    <i class="bi bi-eye me-1"></i> <span class="d-none d-md-inline">View Content</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsed Content Details (PPT Deck, Syllabus, Assignment, Quiz) -->
+                        <div id="dailyCollapse{{ d_lesson.id }}" class="collapse daily-lesson-collapse pt-4 mt-3 border-top" style="border-color: rgba(212, 175, 55, 0.25) !important;">
+
+                        <!-- PPT Presentation & Audio Hub (Admin Mode) -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-6">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-success mb-0"><i class="bi bi-file-earmark-slides me-1"></i> Day {{ d_lesson.day_number }} Presentation Lecture & Audio Hub</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-2 py-0" style="font-size: 0.78rem;" data-bs-toggle="modal" data-bs-target="#uploadPptModal{{ d_lesson.id }}">
+                                        <i class="bi bi-upload me-1 text-warning"></i> Upload PPT
+                                    </button>
+                                </div>
+                                <div class="p-3 rounded-3 shadow-sm bg-white" style="border: 2px solid #d4af37;">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
+                                        <div>
+                                            <span class="badge" style="background: #064e3b; color: #d4af37; font-size: 0.75rem;">
+                                                <i class="bi bi-mortarboard-fill me-1"></i> Lecture Deck
+                                            </span>
+                                            {% if d_lesson.ppt_file %}
+                                            <span class="badge bg-success text-white ms-1"><i class="bi bi-check2 me-1"></i>Teacher PPT Active</span>
+                                            {% else %}
+                                            <span class="badge bg-info-subtle text-info border border-info ms-1"><i class="bi bi-stars me-1"></i>AI Generated Deck</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="{% url 'daily_lesson' d_lesson.id %}" target="_blank" class="btn btn-sm btn-golden fw-bold" style="font-size: 0.78rem;">
+                                                <i class="bi bi-play-circle-fill me-1"></i> Preview Masterclass Screen
+                                            </a>
+                                            <a href="{% url 'download_lesson_ppt' d_lesson.id %}" class="btn btn-sm btn-nav-outline fw-bold" style="font-size: 0.78rem;">
+                                                <i class="bi bi-download me-1"></i> Download .pptx
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="small text-muted mb-2">
+                                        Features synchronized PPT slides with automated <strong>Slide Explanations (with practical examples)</strong> and <strong>Audio Explanations (gTTS)</strong>.
+                                    </p>
+
+                                    <div class="p-2 rounded bg-light border small mb-2 d-flex justify-content-between align-items-center">
+                                        <span><i class="bi bi-volume-up-fill text-success me-1"></i>Audio Voice Engine: <strong>gTTS Synthesized</strong></span>
+                                        <span class="badge bg-dark text-warning">Per-Slide MP3</span>
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-success w-100 fw-semibold" data-bs-toggle="modal" data-bs-target="#uploadPptModal{{ d_lesson.id }}">
+                                            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload / Replace Lesson PPT (.pptx)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lesson Overview & Syllabus Text -->
+                            <div class="col-lg-6">
+                                <h6 class="fw-bold text-success mb-2"><i class="bi bi-book me-1"></i> Day {{ d_lesson.day_number }} Core Syllabus</h6>
+                                <div class="p-3 rounded-3" style="background: #ffffff; border: 1.5px solid rgba(212, 175, 55, 0.35); max-height: 320px; overflow-y: auto; font-size: 0.88rem; line-height: 1.6;">
+                                    {{ d_lesson.content|safe|truncatewords_html:130 }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Tasks: Assignment & Quiz -->
+                        <div class="row g-3">
+                            <!-- Assignment -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 h-100" style="background: #fdfbf7; border: 1.5px solid #d4af37;">
+                                    <h6 class="fw-bold text-warning-emphasis mb-2">
+                                        <i class="bi bi-pencil-square text-warning me-1"></i> Day {{ d_lesson.day_number }} Assignment Challenge
+                                    </h6>
+                                    <p class="small mb-0 text-dark" style="white-space: pre-line; line-height: 1.6;">
+                                        {{ d_lesson.task.assignment_question|default:"Implement the day's architectural blueprint and submit your code solution for automated review." }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Quiz -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 h-100" style="background: #ffffff; border: 1.5px solid #064e3b;">
+                                    <h6 class="fw-bold text-success mb-2">
+                                        <i class="bi bi-patch-question text-success me-1"></i> Day {{ d_lesson.day_number }} Diagnostic Assessment (5 Questions)
+                                    </h6>
+                                    {% if d_lesson.task and d_lesson.task.quiz_data %}
+                                    <div class="accordion accordion-flush" id="quizAccAdmin_{{ d_lesson.id }}">
+                                        {% for q in d_lesson.task.quiz_data %}
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header" id="heading_admin_q_{{ d_lesson.id }}_{{ forloop.counter }}">
+                                                <button class="accordion-button collapsed py-2 px-0 bg-transparent text-dark small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_admin_q_{{ d_lesson.id }}_{{ forloop.counter }}">
+                                                    Q{{ forloop.counter }}: {{ q.question|truncatechars:65 }}
+                                                </button>
+                                            </h2>
+                                            <div id="collapse_admin_q_{{ d_lesson.id }}_{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#quizAccAdmin_{{ d_lesson.id }}">
+                                                <div class="accordion-body px-0 py-2 small">
+                                                    <p class="fw-semibold mb-2" style="color: #064e3b;">{{ q.question }}</p>
+                                                    <ul class="list-unstyled mb-2">
+                                                        {% for opt in q.options %}
+                                                        <li class="mb-1 {% if forloop.counter0 == q.correct_answer or opt == q.answer %}text-success fw-bold{% else %}text-muted{% endif %}">
+                                                            {% if forloop.counter0 == q.correct_answer or opt == q.answer %}✓{% else %}•{% endif %} {{ opt }}
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                    {% if q.explanation %}
+                                                    <div class="p-2 rounded bg-light border small text-muted">
+                                                        <strong>Explanation:</strong> {{ q.explanation }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="small text-muted mb-0">No quiz data loaded for this lesson.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Daily Tasks row -->
+                        </div>
+                        <!-- End Collapsed Content Details -->
+
+                        <!-- Modal: Upload PPT Presentation for Day {{ d_lesson.day_number }} -->
+                        <div class="modal fade" id="uploadPptModal{{ d_lesson.id }}" tabindex="-1" aria-labelledby="uploadPptLabel{{ d_lesson.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-4" style="border: 2px solid #d4af37 !important;">
+                                    <form action="{% url 'admin_upload_lesson_ppt' d_lesson.id %}" method="POST" enctype="multipart/form-data" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled=true; btn.innerHTML='<span class=\'spinner-border spinner-border-sm me-2\'></span>Extracting PPT & Synthesizing Audio...';">
+                                        {% csrf_token %}
+                                        <div class="modal-header border-bottom py-3" style="background: linear-gradient(135deg, #064e3b, #106e53); color: #ffffff;">
+                                            <h5 class="modal-title fw-bold" id="uploadPptLabel{{ d_lesson.id }}">
+                                                <i class="bi bi-file-earmark-slides-fill text-warning me-2"></i>Upload PPT & Generate Audio
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4 bg-light">
+                                            <div class="mb-3 text-center">
+                                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow-sm" style="width: 58px; height: 58px; background: #fef9e7; border: 2px solid #d4af37; color: #064e3b;">
+                                                    <i class="bi bi-cloud-arrow-up-fill fs-3"></i>
+                                                </div>
+                                                <h6 class="fw-bold text-dark mb-1">Day {{ d_lesson.day_number }}: {{ d_lesson.title }}</h6>
+                                                <p class="text-muted small mb-0">Upload a PowerPoint (<code>.pptx</code>) file for this lesson.</p>
+                                            </div>
+
+                                            <div class="p-3 bg-white rounded-3 border mb-3">
+                                                <label class="form-label fw-bold small text-success mb-2"><i class="bi bi-gear-wide-connected me-1"></i>Automated 5-Step Pipeline:</label>
+                                                <ul class="small text-muted mb-0 ps-3" style="line-height: 1.6;">
+                                                    <li><strong>Step 1:</strong> python-pptx extracts titles, bullets & text from all slides.</li>
+                                                    <li><strong>Step 2:</strong> AI generates simple concept breakdowns + real-world practical examples.</li>
+                                                    <li><strong>Step 3:</strong> gTTS synthesizes per-slide voice audio (MP3) files on server.</li>
+                                                    <li><strong>Step 4:</strong> Saves to PresentationSlide database models.</li>
+                                                    <li><strong>Step 5:</strong> Student gets instant "Slide Explanation" & "Audio Explanation" buttons!</li>
+                                                </ul>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <label for="pptFileInput{{ d_lesson.id }}" class="form-label fw-bold text-dark small">Select PowerPoint Presentation (.pptx):</label>
+                                                <input type="file" class="form-control rounded-pill" id="pptFileInput{{ d_lesson.id }}" name="ppt_file" accept=".pptx" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top bg-white">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-sm rounded-pill px-4 fw-bold shadow-sm" style="background: #D4AF37; color: #064E3B; border: 1px solid #c49f27;">
+                                                <i class="bi bi-upload me-1"></i> Upload & Process PPT
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- End Daily Lesson Card -->
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">
+                        No canonical daily lessons initialized. Click "Regenerate Deep AI Curriculum" to synthesize the daily syllabus.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB 3: COMPREHENSIVE LECTURE PRESENTATION DECK (15-30+ SLIDES) -->
+            <div class="tab-pane fade" id="slidesPane" role="tabpanel">
+                <div class="card p-4 shadow-sm mb-4" style="border: 2px solid #d4af37; border-radius: 16px; background: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 border-bottom pb-3">
+                        <div>
+                            <h4 class="fw-bold mb-1" style="color: #064e3b;">
+                                <i class="bi bi-file-earmark-slides-fill text-warning me-2"></i>Comprehensive Lecture Presentation Deck
+                            </h4>
+                            <p class="text-muted small mb-0">
+                                Exhaustive {{ total_slides }}-slide university lecture deck outline with detailed speaker lecture notes, code walkthroughs, and ASCII architecture diagrams.
+                            </p>
+                        </div>
+                        <span class="badge" style="background: #064e3b; color: #d4af37; border: 1.5px solid #d4af37; font-size: 0.85rem; padding: 7px 16px; border-radius: 20px;">
+                            {{ total_slides }} Professional Slides
+                        </span>
+                    </div>
+
+                    <!-- Slide Grid (15 to 30+ Slides) -->
+                    <div class="row g-4">
+                        {% for slide in all_slides %}
+                        <div class="col-12 col-lg-6">
+                            <div class="slide-grid-card">
+                                <div>
+                                    <!-- Slide Top Badge & Category -->
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="slide-num-pill">SLIDE {{ slide.slide_number }}</span>
+                                            <span class="badge bg-secondary-subtle text-secondary small fw-bold">
+                                                {{ slide.slide_category|default:"Lecture Concept" }}
+                                            </span>
+                                        </div>
+                                        <span class="small text-muted fw-semibold">
+                                            Slide {{ slide.slide_number }} of {{ total_slides }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Slide Title -->
+                                    <h5 class="fw-bold mb-3" style="color: #064e3b; font-size: 1.1rem; line-height: 1.4;">
+                                        {{ slide.title }}
+                                    </h5>
+
+                                    <!-- Slide Bullet Points -->
+                                    <div class="mb-3">
+                                        <div class="small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                            Lecture Slide Content:
+                                        </div>
+                                        <ul class="mb-0 ps-3 small text-dark" style="line-height: 1.7;">
+                                            {% for pt in slide.bullet_points %}
+                                            <li>{{ pt }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                    <!-- Speaker Notes / Professor Speech Script -->
+                                    {% if slide.speaker_notes %}
+                                    <div class="mb-3">
+                                        <div class="small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                            <i class="bi bi-mic-fill text-warning me-1"></i> Professor Speaker Notes:
+                                        </div>
+                                        <div class="speaker-notes-box">
+                                            {{ slide.speaker_notes }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Code Snippet if present -->
+                                    {% if slide.code_snippet %}
+                                    <div class="mb-3">
+                                        <div class="small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                            <i class="bi bi-code-square text-info me-1"></i> Slide Code Blueprint:
+                                        </div>
+                                        <div class="code-preview-box">
+                                            <pre class="mb-0">{{ slide.code_snippet }}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Visual / Diagram Placeholder -->
+                                    {% if slide.diagram_or_visual %}
+                                    <div class="mb-2">
+                                        <div class="small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                            <i class="bi bi-diagram-3 text-success me-1"></i> Architecture / Mental Model:
+                                        </div>
+                                        <div class="visual-preview-box">
+                                            {{ slide.diagram_or_visual }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="pt-2 border-top mt-3 text-end" style="border-color: rgba(212, 175, 55, 0.2) !important;">
+                                    <span class="small text-muted" style="font-size: 0.75rem;">
+                                        Academic Standard: {{ course_level.benchmark }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted">
+                            No presentation slides generated yet. Click "Regenerate Deep AI Curriculum" to synthesize the 20+ slide deck.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: PEDAGOGICAL AUDIT & STUDENT SYNC -->
+            <div class="tab-pane fade" id="auditPane" role="tabpanel">
+                <div class="card p-4 shadow-sm mb-4" style="border: 2px solid #d4af37; border-radius: 16px; background: #ffffff;">
+                    <h4 class="fw-bold mb-3" style="color: #064e3b;">
+                        <i class="bi bi-shield-check text-success me-2"></i>Pedagogical Compliance & Student Synchronization
+                    </h4>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 h-100" style="background: #f8fafc; border: 1.5px solid #d4af37;">
+                                <h6 class="fw-bold text-success mb-2">Curriculum Specification Overview</h6>
+                                <table class="table table-sm mb-0">
+                                    <tr>
+                                        <td class="text-muted fw-bold">Master Domain:</td>
+                                        <td class="text-dark">{{ parent_course.title }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted fw-bold">Academic Tier:</td>
+                                        <td class="text-dark">{{ course_level.level }} Level</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted fw-bold">Mapped Benchmark:</td>
+                                        <td class="text-dark">{{ course_level.benchmark }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted fw-bold">Total Modules:</td>
+                                        <td class="text-dark">{{ total_modules }} Active Modules</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted fw-bold">Total Lessons:</td>
+                                        <td class="text-dark">{{ total_lessons }} Deep Lessons</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted fw-bold">Slide Deck Count:</td>
+                                        <td class="text-dark">{{ total_slides }} Presentation Slides</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 h-100" style="background: #f8fafc; border: 1.5px solid #d4af37;">
+                                <h6 class="fw-bold text-success mb-2">Instant Student Retrieval Cache</h6>
+                                <p class="small text-muted" style="line-height: 1.6;">
+                                    When students select this university tier on the student dashboard, all pre-generated lessons, 
+                                    textbook material, and diagnostic assessments are retrieved directly from the database in &lt;15ms. 
+                                    Zero AI generation latency or background queue waiting.
+                                </p>
+                                <div class="d-flex align-items-center gap-2 mt-3">
+                                    <span class="badge bg-success text-white px-3 py-2 rounded-pill">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Pre-Cached & Verified
+                                    </span>
+                                    <a href="{% url 'admin_course_level_users' course_level.slug %}" class="btn btn-sm btn-outline-secondary">
+                                        Inspect Cohort Telemetry
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* Daily Topic Trigger and Chevron */
+.daily-topic-btn {
+    outline: none;
+    text-decoration: none;
+}
+.daily-topic-btn:hover {
+    text-decoration: none;
+}
+.daily-chevron {
+    transition: transform 0.25s ease;
+}
+.daily-lesson-trigger:not(.collapsed) .daily-chevron {
+    transform: rotate(180deg);
+    color: #064e3b !important;
+}
+.daily-lesson-card {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.daily-lesson-card:hover {
+    border-color: #b8860b !important;
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.2) !important;
+}
+</style>
+
+<script>
+function toggleAllCurriculumLessons() {
+    const pane = document.getElementById('curriculumPane');
+    if (!pane) return;
+    const collapses = pane.querySelectorAll('.lesson-card-item .collapse');
+    const triggers = pane.querySelectorAll('.lesson-btn-trigger');
+    const icon = document.getElementById('iconToggleAllCurriculum');
+    const text = document.getElementById('textToggleAllCurriculum');
+
+    let anyOpen = Array.from(collapses).some(c => c.classList.contains('show'));
+    collapses.forEach(c => {
+        if (anyOpen) {
+            c.classList.remove('show');
+        } else {
+            c.classList.add('show');
+        }
+    });
+    triggers.forEach(t => {
+        if (anyOpen) {
+            t.classList.add('collapsed');
+            t.setAttribute('aria-expanded', 'false');
+        } else {
+            t.classList.remove('collapsed');
+            t.setAttribute('aria-expanded', 'true');
+        }
+    });
+    if (icon && text) {
+        if (anyOpen) {
+            icon.className = 'bi bi-arrows-expand me-1';
+            text.textContent = 'Expand All Topics';
+        } else {
+            icon.className = 'bi bi-arrows-collapse me-1';
+            text.textContent = 'Collapse All Topics';
+        }
+    }
+}
+
+function toggleAllDailyLessons() {
+    const pane = document.getElementById('dailyPane');
+    if (!pane) return;
+    const collapses = pane.querySelectorAll('.daily-lesson-collapse');
+    const triggers = pane.querySelectorAll('.daily-lesson-trigger');
+    const icon = document.getElementById('iconToggleAllDaily');
+    const text = document.getElementById('textToggleAllDaily');
+
+    let anyOpen = Array.from(collapses).some(c => c.classList.contains('show'));
+    collapses.forEach(c => {
+        if (anyOpen) {
+            c.classList.remove('show');
+        } else {
+            c.classList.add('show');
+        }
+    });
+    triggers.forEach(t => {
+        if (anyOpen) {
+            t.classList.add('collapsed');
+            t.setAttribute('aria-expanded', 'false');
+        } else {
+            t.classList.remove('collapsed');
+            t.setAttribute('aria-expanded', 'true');
+        }
+    });
+    if (icon && text) {
+        if (anyOpen) {
+            icon.className = 'bi bi-arrows-expand me-1';
+            text.textContent = 'Expand All Daily Topics';
+        } else {
+            icon.className = 'bi bi-arrows-collapse me-1';
+            text.textContent = 'Collapse All Daily Topics';
+        }
+    }
+}
+</script>
+{% endblock %}

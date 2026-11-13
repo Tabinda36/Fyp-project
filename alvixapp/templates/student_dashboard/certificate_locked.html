@@ -1,0 +1,76 @@
+{% extends 'student_dashboard/dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9 text-center">
+            <div class="card border-0 shadow-lg rounded-4 p-5 bg-white position-relative overflow-hidden" style="border-top: 5px solid #D4AF37 !important;">
+                
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-4 shadow-sm" style="width: 90px; height: 90px; background: rgba(212, 175, 55, 0.15); border: 2px solid #D4AF37;">
+                    <i class="bi bi-shield-lock-fill fs-1" style="color: #064E3B;"></i>
+                </div>
+
+                <h3 class="fw-bold mb-2" style="color: #064E3B;">Certificate of Completion Locked</h3>
+                <p class="text-secondary mb-4">
+                    {{ error|default:"You have not yet completed all curriculum modules to unlock your official accredited certificate." }}
+                </p>
+
+                                {% if remaining_lessons or score_gap %}
+                <div class="alert alert-light border border-danger-subtle p-3 mb-4 text-start small">
+                    <strong class="text-danger"><i class="bi bi-exclamation-circle me-1"></i> Remaining Requirements to Unlock:</strong>
+                    <ul class="mb-0 ps-3 mt-2 text-muted">
+                        {% if remaining_lessons > 0 %}
+                        <li><strong>{{ remaining_lessons }} lesson(s)</strong> remaining to complete.</li>
+                        {% endif %}
+                        {% if score_gap > 0 %}
+                        <li><strong>{{ score_gap }}%</strong> additional overall score needed to reach the <strong>{{ pass_mark|default:35 }}%</strong> pass mark (Current: {{ current_score|default:0 }}%).</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if total_lessons %}
+                <div class="p-3 rounded-3 mb-4 text-start" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold text-dark">Course Curriculum Progress:</span>
+                        <span class="badge bg-success">{{ completed_lessons }} of {{ total_lessons }} Lessons Complete</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar" style="width: {% widthratio completed_lessons total_lessons 100 %}%; background: linear-gradient(90deg, #D4AF37, #106E53);"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="{% url 'course_content' %}" class="btn btn-golden px-4 py-2 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-play-circle-fill me-1"></i> Resume Course & Unlock
+                    </a>
+                    <a href="{% url 'performance' %}" class="btn btn-outline-success px-4 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-graph-up me-1"></i> View Performance Page
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-house-door me-1"></i> Dashboard
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        border: 1px solid #c49f27 !important;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+    .btn-golden:hover {
+        background-color: #c49f27 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    }
+</style>
+{% endblock content %}

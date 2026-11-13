@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ALVIX - Adaptive course generation with AI-driven learning.">
+    <title>ALVIX - AI Course Generator</title>
+
+    <style>
+        :root {
+            --green-900: #064e3b;
+            --green-700: #047857;
+            --green-800: #065f46;
+            --gold: #d4af37;
+            --bg: #f1f7f4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 78, 59, 0.25) 0px, transparent 50%);
+            color: var(--green-900);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 32px 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient glows */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 420px;
+            height: 420px;
+            top: 8%;
+            left: 10%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.22), transparent 70%);
+            animation: drift 9s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            width: 460px;
+            height: 460px;
+            bottom: 5%;
+            right: 8%;
+            background: radial-gradient(circle, rgba(6, 78, 59, 0.25), transparent 70%);
+            animation: drift 11s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(20px, -20px) scale(1.12); }
+        }
+
+        /* Card */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            width: 100%;
+            padding: 52px 44px 44px;
+            background: #ffffff;
+            border: 2px solid var(--gold);
+            border-radius: 28px;
+            box-shadow: 0 24px 60px rgba(6, 78, 59, 0.22),
+                        0 0 24px rgba(212, 175, 55, 0.18);
+            animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        /* Gold accent line along the top of the card */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            border-radius: 0 0 6px 6px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo */
+        .logo-wrapper {
+            margin-bottom: 26px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logo-circle {
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            background: #fcfbf7;
+            border: 2px solid var(--gold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.12),
+                        0 6px 16px rgba(212, 175, 55, 0.25);
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--green-700);
+            background: rgba(212, 175, 55, 0.14);
+            border: 1px solid rgba(212, 175, 55, 0.55);
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+
+        /* Heading: gold outline drawn behind the fill so letters stay crisp */
+        h1 {
+            font-size: clamp(34px, 6vw, 50px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 14px;
+            letter-spacing: -1px;
+            color: var(--green-900);
+            -webkit-text-stroke: 1.5px var(--gold);
+            paint-order: stroke fill;
+            text-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+        }
+
+        h2 {
+            font-size: clamp(16px, 2.6vw, 20px);
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--green-700);
+            margin-bottom: 18px;
+        }
+
+        .intro {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--green-900);
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        /* Feature highlights */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 34px;
+            list-style: none;
+        }
+
+        .feature {
+            padding: 18px 14px;
+            border-radius: 16px;
+            background: #fbfdfc;
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(6, 78, 59, 0.25);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 10px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--green-900), var(--green-700));
+            border: 1px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .feature h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--green-900);
+        }
+
+        .feature p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--green-700);
+        }
+
+        /* Button */
+        .btn {
+            margin-top: 38px;
+        }
+
+        .btn a {
+            text-decoration: none;
+            background: linear-gradient(135deg, var(--green-900), var(--green-700));
+            border: 1px solid var(--gold);
+            padding: 16px 40px;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.4);
+        }
+
+        .btn a svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s ease;
+        }
+
+        .btn a:hover {
+            background: linear-gradient(135deg, var(--green-700), var(--green-800));
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 30px -5px rgba(6, 78, 59, 0.5),
+                        0 0 14px rgba(212, 175, 55, 0.35);
+        }
+
+        .btn a:hover svg {
+            transform: translateX(4px);
+        }
+
+        .btn a:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn a:focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 3px;
+        }
+
+        .note {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--green-700);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container { padding: 40px 22px 34px; border-radius: 22px; }
+            .features { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+        <div class="logo-wrapper">
+            <div class="logo-circle">
+                <img src="{% static 'images/LOGO.alvix.png' %}" alt="ALVIX Logo">
+            </div>
+        </div>
+
+        <span class="badge">AI-Powered Learning</span>
+
+        <h1>Welcome to ALVIX</h1>
+        <h2>Adaptive Course Generation with AI-Driven Learning</h2>
+
+        <p class="intro">
+            Turn any goal into a complete course in seconds. ALVIX uses AI to craft your personal
+            learning path, deliver fresh daily lessons, and adapt to every step you take,
+            so you always learn at your own pace and never get left behind.
+        </p>
+
+        <ul class="features">
+            <li class="feature">
+                <div class="feature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+                </div>
+                <h3>Personalized Paths</h3>
+                <p>Courses shaped around each learner's goals.</p>
+            </li>
+            <li class="feature">
+                <div class="feature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                </div>
+                <h3>Smart Daily Lessons</h3>
+                <p>Fresh, bite-sized lessons generated every day.</p>
+            </li>
+            <li class="feature">
+                <div class="feature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+                </div>
+                <h3>Adaptive Progress</h3>
+                <p>Content adjusts to performance in real time.</p>
+            </li>
+        </ul>
+
+        <div class="btn">
+            <a href="{% url 'signup' %}">
+                Get Started
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+        </div>
+    </main>
+
+</body>
+</html>

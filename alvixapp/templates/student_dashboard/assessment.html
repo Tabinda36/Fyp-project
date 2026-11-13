@@ -1,0 +1,447 @@
+{% extends "student_dashboard/dashboard.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .assessment-card {
+        background: #ffffff;
+        border: 2px solid #d4af37;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(6, 78, 59, 0.08), 0 0 15px rgba(212, 175, 55, 0.15);
+        padding: 40px;
+        margin-top: 25px;
+        margin-bottom: 50px;
+    }
+
+    .assessment-header {
+        text-align: center;
+        margin-bottom: 35px;
+        border-bottom: 2px dashed rgba(212, 175, 55, 0.3);
+        padding-bottom: 25px;
+    }
+
+    .assessment-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(6, 78, 59, 0.1));
+        border: 1px solid #d4af37;
+        color: #064e3b;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 6px 16px;
+        border-radius: 20px;
+        margin-bottom: 15px;
+    }
+
+    .assessment-title {
+        color: #064e3b;
+        font-weight: 800;
+        font-size: 1.9rem;
+        margin-bottom: 8px;
+    }
+
+    .assessment-subtitle {
+        color: #4b5563;
+        font-size: 1rem;
+        max-width: 620px;
+        margin: 0 auto;
+    }
+
+    .question-block {
+        background: #fbfcfb;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 26px;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .question-block:focus-within, .question-block:hover {
+        border-color: #d4af37;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.12);
+    }
+
+    .question-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #064e3b, #047857);
+        color: #ffffff;
+        border: 1.5px solid #d4af37;
+        border-radius: 50%;
+        font-weight: 800;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+
+    .question-title {
+        color: #064e3b;
+        font-weight: 700;
+        font-size: 1.12rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .question-desc {
+        color: #6b7280;
+        font-size: 0.88rem;
+        margin-top: 4px;
+        margin-left: 42px;
+        margin-bottom: 16px;
+    }
+
+    /* Option Tiles */
+    .option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-left: 42px;
+    }
+
+    .option-tile {
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 14px 18px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .option-tile:hover {
+        border-color: #d4af37;
+        background: #fdfdf9;
+        transform: translateY(-2px);
+    }
+
+    .option-tile input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .option-tile.selected {
+        border-color: #064e3b;
+        background: linear-gradient(135deg, rgba(6, 78, 59, 0.08), rgba(212, 175, 55, 0.12));
+        color: #064e3b;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.15);
+    }
+
+    .option-icon {
+        font-size: 1.25rem;
+        margin-right: 12px;
+        color: #047857;
+    }
+
+    /* Expectations Text Area */
+    .expectations-wrapper {
+        margin-left: 42px;
+    }
+
+    .expectations-textarea {
+        border: 2px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 0.98rem;
+        color: #064e3b;
+        font-weight: 500;
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        transition: all 0.25s ease;
+        background: #ffffff;
+    }
+
+    .expectations-textarea:focus {
+        border-color: #d4af37;
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+        outline: none;
+    }
+
+    .char-counter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        margin-top: 8px;
+        font-weight: 600;
+    }
+
+    .char-counter.invalid {
+        color: #dc2626;
+    }
+
+    .char-counter.valid {
+        color: #059669;
+    }
+
+    /* Action Buttons */
+    .btn-submit-assessment {
+        background: linear-gradient(135deg, #064e3b, #047857);
+        color: #ffffff;
+        border: 1.5px solid #d4af37;
+        padding: 14px 38px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(6, 78, 59, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit-assessment:hover:not(:disabled) {
+        background: linear-gradient(135deg, #047857, #065f46);
+        box-shadow: 0 8px 22px rgba(6, 78, 59, 0.4), 0 0 12px rgba(212, 175, 55, 0.4);
+        transform: translateY(-2px);
+        color: #ffffff;
+    }
+
+    .btn-submit-assessment:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10">
+
+            <div class="assessment-card">
+                <!-- Header -->
+                <div class="assessment-header">
+                    <div class="assessment-badge">
+                        <i class="bi bi-patch-check-fill text-warning"></i>
+                        {% if is_retake %}Personal Assessment Update{% else %}First-Login Student Assessment{% endif %}
+                    </div>
+                    <h1 class="assessment-title">
+                        {% if is_retake %}Retake Learning Assessment{% else %}Welcome to ALVIX Learning{% endif %}
+                    </h1>
+                    <p class="assessment-subtitle">
+                        Please answer the 3 quick questions below to configure your adaptive learning profile and optimize your curriculum delivery.
+                    </p>
+                </div>
+
+                <!-- Messages / Errors -->
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger mb-4 rounded-3" role="alert">
+                    <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following:</div>
+                    <ul class="mb-0 ps-3">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="POST" id="assessmentForm" onsubmit="return handleAssessmentSubmit(event)">
+                    {% csrf_token %}
+
+                    <!-- QUESTION 1: Interest Area -->
+                    <div class="question-block">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="question-number">1</span>
+                            <span class="question-title">Interest Area</span>
+                        </div>
+                        <div class="question-desc">Select exactly one primary domain of interest for your studies.</div>
+
+                        <div class="option-grid">
+                            <label class="option-tile" data-group="interest_area">
+                                <input type="radio" name="interest_area" value="Creativity" {% if form.interest_area.value == 'Creativity' %}checked{% endif %} required>
+                                <i class="bi bi-palette-fill option-icon"></i>
+                                <span>Creativity</span>
+                            </label>
+
+                            <label class="option-tile" data-group="interest_area">
+                                <input type="radio" name="interest_area" value="Development" {% if form.interest_area.value == 'Development' %}checked{% endif %} required>
+                                <i class="bi bi-code-slash option-icon"></i>
+                                <span>Development</span>
+                            </label>
+
+                            <label class="option-tile" data-group="interest_area">
+                                <input type="radio" name="interest_area" value="Designing" {% if form.interest_area.value == 'Designing' %}checked{% endif %} required>
+                                <i class="bi bi-bezier2 option-icon"></i>
+                                <span>Designing</span>
+                            </label>
+
+                            <label class="option-tile" data-group="interest_area">
+                                <input type="radio" name="interest_area" value="Marketing" {% if form.interest_area.value == 'Marketing' %}checked{% endif %} required>
+                                <i class="bi bi-megaphone-fill option-icon"></i>
+                                <span>Marketing</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- QUESTION 2: Goal -->
+                    <div class="question-block">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="question-number">2</span>
+                            <span class="question-title">Learning Goal</span>
+                        </div>
+                        <div class="question-desc">Choose your preferred pedagogical orientation and delivery style.</div>
+
+                        <div class="option-grid">
+                            <label class="option-tile" data-group="goal">
+                                <input type="radio" name="goal" value="Practical" {% if form.goal.value == 'Practical' %}checked{% endif %} required>
+                                <i class="bi bi-tools option-icon"></i>
+                                <span>Practical</span>
+                            </label>
+
+                            <label class="option-tile" data-group="goal">
+                                <input type="radio" name="goal" value="Theory" {% if form.goal.value == 'Theory' %}checked{% endif %} required>
+                                <i class="bi bi-book-half option-icon"></i>
+                                <span>Theory</span>
+                            </label>
+
+                            <label class="option-tile" data-group="goal">
+                                <input type="radio" name="goal" value="Mixed" {% if form.goal.value == 'Mixed' %}checked{% endif %} required>
+                                <i class="bi bi-intersect option-icon"></i>
+                                <span>Mixed</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- QUESTION 3: Expectations -->
+                    <div class="question-block">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="question-number">3</span>
+                            <span class="question-title">Expectations</span>
+                        </div>
+                        <div class="question-desc">
+                            What do you actually want to learn from this course, and what do you expect to be able to do after it?
+                        </div>
+
+                        <div class="expectations-wrapper">
+                            <textarea
+                                name="expectations"
+                                id="expectationsTextarea"
+                                class="expectations-textarea"
+                                placeholder="What do you actually want to learn from this course, and what do you expect to be able to do after it? (Minimum 20 characters)"
+                                required
+                            >{{ form.expectations.value|default:'' }}</textarea>
+
+                            <div class="char-counter invalid" id="charCounter">
+                                <span id="charCountText">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    <span id="currentCharCount">0</span> / 20 characters minimum
+                                </span>
+                                <span id="charStatusText">Needs at least 20 characters</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submission Action -->
+                    <div class="text-center mt-4 pt-2">
+                        <button type="submit" class="btn btn-submit-assessment px-5" id="submitBtn">
+                            <i class="bi bi-check2-circle me-2"></i>
+                            {% if is_retake %}Save & Update Profile{% else %}Save Assessment & Continue{% endif %}
+                        </button>
+
+                        {% if is_retake %}
+                        <div class="mt-3">
+                            <a href="{% url 'profile' %}" class="btn btn-link text-decoration-none text-muted fw-semibold">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Profile
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Highlight pre-selected option tiles and attach click listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.option-tile').forEach(function(tile) {
+            var radio = tile.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                tile.classList.add('selected');
+            }
+
+            tile.addEventListener('click', function() {
+                var groupName = radio.getAttribute('name');
+                document.querySelectorAll('.option-tile input[name="' + groupName + '"]').forEach(function(r) {
+                    r.closest('.option-tile').classList.remove('selected');
+                });
+                radio.checked = true;
+                tile.classList.add('selected');
+            });
+        });
+
+        // Initialize character counter
+        var textarea = document.getElementById('expectationsTextarea');
+        if (textarea) {
+            updateCharCount();
+            textarea.addEventListener('input', updateCharCount);
+        }
+    });
+
+    function updateCharCount() {
+        var textarea = document.getElementById('expectationsTextarea');
+        var counter = document.getElementById('charCounter');
+        var currentSpan = document.getElementById('currentCharCount');
+        var statusSpan = document.getElementById('charStatusText');
+
+        if (!textarea || !counter) return;
+
+        var count = textarea.value.trim().length;
+        currentSpan.textContent = count;
+
+        if (count >= 20) {
+            counter.classList.remove('invalid');
+            counter.classList.add('valid');
+            statusSpan.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Requirement met';
+        } else {
+            counter.classList.remove('valid');
+            counter.classList.add('invalid');
+            var remaining = 20 - count;
+            statusSpan.textContent = remaining + ' more character' + (remaining === 1 ? '' : 's') + ' needed';
+        }
+    }
+
+    function handleAssessmentSubmit(event) {
+        var textarea = document.getElementById('expectationsTextarea');
+        var val = textarea ? textarea.value.trim() : '';
+
+        if (val.length < 20) {
+            event.preventDefault();
+            alert('Please provide at least 20 characters in the Expectations field before submitting.');
+            if (textarea) {
+                textarea.focus();
+            }
+            return false;
+        }
+
+        // Show loading state
+        var submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving Assessment...';
+        }
+        return true;
+    }
+</script>
+{% endblock content %}

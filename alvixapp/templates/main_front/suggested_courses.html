@@ -1,0 +1,596 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Course Recommendation & Next Steps | ALVIX</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #09130e; 
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 78, 59, 0.35) 0px, transparent 50%);
+            color: #064e3b;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container-box {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .logo-circle {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: #fcfbf7;
+            border: 2px solid #d4af37;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .page-title {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Profile Recap Pill */
+        .recap-bar {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 14px;
+            padding: 12px 20px;
+            color: #e2e8f0;
+            font-size: 13px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: gap;
+        }
+
+        .recap-item strong {
+            color: #d4af37;
+        }
+
+        /* Suggested Course Card */
+        .recommendation-card {
+            background: #ffffff;
+            border: 2.5px solid #d4af37;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 175, 55, 0.2);
+            padding: 32px;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .course-title-lg {
+            color: #064e3b;
+            font-weight: 800;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* 2-Sentence AI Reason Banner */
+        .ai-reason-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(6, 78, 59, 0.06));
+            border-left: 4px solid #d4af37;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 18px 0;
+            color: #064e3b;
+        }
+
+        .ai-reason-box h6 {
+            color: #064e3b;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-reason-box p {
+            font-size: 14.5px;
+            line-height: 1.6;
+            margin-bottom: 0;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        /* Choice Cards Section */
+        .choices-section-title {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .choice-card {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .choice-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.18);
+        }
+
+        .choice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .choice-tag {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: #d4af37;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            border: 1.5px solid #d4af37;
+            margin-right: 10px;
+        }
+
+        .choice-title {
+            font-weight: 700;
+            font-size: 17px;
+            color: #064e3b;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .choice-desc {
+            color: #64748b;
+            font-size: 13.5px;
+            margin-bottom: 18px;
+            margin-left: 42px;
+        }
+
+        /* Level Pills */
+        .level-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+            margin-left: 42px;
+        }
+
+        .level-pill-label {
+            display: block;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            color: #064e3b;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .level-pill-label small {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .level-pill-radio {
+            display: none;
+        }
+
+        .level-pill-radio:checked + .level-pill-label {
+            border-color: #d4af37;
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+        }
+
+        .level-pill-radio:checked + .level-pill-label small {
+            color: #d4af37;
+        }
+
+        /* Buttons */
+        .btn-action-primary {
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: #ffffff;
+            border: 1.5px solid #d4af37;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-action-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #047857, #065f46);
+            box-shadow: 0 6px 18px rgba(6, 78, 59, 0.35);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-action-outline {
+            border: 1.5px solid #064e3b;
+            color: #064e3b;
+            background: transparent;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action-outline:hover {
+            background: #064e3b;
+            color: #ffffff;
+        }
+
+        /* Nav Tabs for Choice C */
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #064e3b;
+            border-color: #cbd5e1 #cbd5e1 #ffffff;
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-box">
+    <!-- Header -->
+    <div class="logo-wrapper">
+        <div class="logo-circle">
+            <img src="{% static 'images/LOGO.alvix.png' %}" alt="ALVIX Logo">
+        </div>
+    </div>
+    <h1 class="page-title">Personalized Course Placement</h1>
+    <p class="subtitle">Based on your learning assessment, here is your AI-recommended path. The choice is always yours.</p>
+
+    <!-- Assessment Recap Bar -->
+    <div class="recap-bar">
+        <div class="recap-item">
+            <i class="bi bi-person-fill me-1 text-warning"></i> Student: <strong>{{ student_name }}</strong>
+        </div>
+        <div class="recap-item">
+            <i class="bi bi-palette-fill me-1 text-warning"></i> Interest: <strong>{{ interest_area }}</strong>
+        </div>
+        <div class="recap-item">
+            <i class="bi bi-bullseye me-1 text-warning"></i> Goal: <strong>{{ goal }}</strong>
+        </div>
+        <div class="recap-item">
+            <i class="bi bi-lightning-fill me-1 text-warning"></i> Suggested Level: <strong>{{ suggested_level }}</strong>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ================= 1. AI RECOMMENDED COURSE CARD ================= -->
+    {% if suggested_course %}
+    <div class="recommendation-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="ai-badge">
+                <i class="bi bi-stars"></i> Top AI Recommendation
+            </span>
+            <span class="badge" style="background: rgba(212, 175, 55, 0.15); border: 1px solid #d4af37; color: #064e3b; font-weight: 700; padding: 6px 12px; border-radius: 12px;">
+                <i class="bi bi-award-fill me-1 text-warning"></i> Suggested Level: {{ suggested_level }}
+            </span>
+        </div>
+
+        <h2 class="course-title-lg">
+            {{ suggested_course.title }}
+            {% if suggested_course.course_code %}
+            <span class="badge" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.75rem; font-weight: 800; border-radius: 10px; padding: 4px 8px; vertical-align: middle;">
+                {{ suggested_course.course_code }}
+            </span>
+            {% endif %}
+        </h2>
+
+        <p class="text-muted small mb-0">{{ suggested_course.description|default:"Comprehensive academic curriculum designed for mastery." }}</p>
+
+        <!-- 2-Sentence AI Reason Referring to Student's Expectations -->
+        <div class="ai-reason-box">
+            <h6><i class="bi bi-chat-quote-fill text-warning"></i> Why This Course Was Selected For You</h6>
+            <p>{{ ai_reason }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= 2. THE THREE CHOICES (Always Student's Choice) ================= -->
+    <h3 class="choices-section-title">
+        <i class="bi bi-hand-index-thumb text-warning"></i> Select Your Next Step
+    </h3>
+
+    <!-- CHOICE (b): Start the suggested course (student picks the level; suggested level is pre-selected) -->
+    {% if suggested_course %}
+    <div class="choice-card" style="border: 2px solid #d4af37;">
+        <div class="choice-header">
+            <div class="d-flex align-items-center">
+                <span class="choice-tag">B</span>
+                <h4 class="choice-title">Start Suggested Course: {{ suggested_course.title }}</h4>
+            </div>
+            <span class="badge bg-success text-white small px-3 py-1">Recommended Choice</span>
+        </div>
+        <p class="choice-desc">
+            Enroll directly in the recommended course. The AI-suggested benchmark level is pre-selected below, but you may choose whichever tier fits you best.
+        </p>
+
+        <form method="POST" id="formChoiceB" onsubmit="handleChoiceSubmit('btnChoiceB', 'Enrolling in Course...')">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start_suggested">
+
+            <!-- Level Selector with Suggested Level Pre-selected -->
+            <div class="level-selector-grid">
+                <div>
+                    <input type="radio" class="level-pill-radio" name="level" id="b_beg" value="Beginner" {% if suggested_level == 'Beginner' %}checked{% endif %}>
+                    <label class="level-pill-label" for="b_beg">
+                        Tier 1: Beginner
+                        <small>CS50 Philosophy</small>
+                    </label>
+                </div>
+                <div>
+                    <input type="radio" class="level-pill-radio" name="level" id="b_int" value="Intermediate" {% if suggested_level == 'Intermediate' %}checked{% endif %}>
+                    <label class="level-pill-label" for="b_int">
+                        Tier 2: Intermediate
+                        <small>MIT Logic & Algorithms</small>
+                    </label>
+                </div>
+                <div>
+                    <input type="radio" class="level-pill-radio" name="level" id="b_adv" value="Advanced" {% if suggested_level == 'Advanced' %}checked{% endif %}>
+                    <label class="level-pill-label" for="b_adv">
+                        Tier 3: Advanced
+                        <small>Stanford & CMU Systems</small>
+                    </label>
+                </div>
+            </div>
+
+            <div class="ms-md-5 ps-md-2">
+                <button type="submit" class="btn-action-primary" id="btnChoiceB">
+                    <i class="bi bi-play-circle-fill"></i> Start {{ suggested_course.title }}
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- CHOICE (c): Pick any other existing course, or ask system to generate a new course from a title -->
+    <div class="choice-card">
+        <div class="choice-header">
+            <div class="d-flex align-items-center">
+                <span class="choice-tag">C</span>
+                <h4 class="choice-title">Pick Another Existing Course or Generate a New Course</h4>
+            </div>
+        </div>
+        <p class="choice-desc">
+            Prefer a different subject? Pick another course from our active catalog, or type any course title to have our AI generate a complete university-benchmarked curriculum on demand.
+        </p>
+
+        <div class="ms-md-5 ps-md-2">
+            <!-- Tabs between Existing Catalog vs AI Generation -->
+            <ul class="nav nav-tabs mb-3" id="choiceCTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="existing-tab" data-bs-toggle="tab" data-bs-target="#tabExisting" type="button" role="tab">
+                        <i class="bi bi-collection me-1"></i> Pick Other Existing Course
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="custom-tab" data-bs-toggle="tab" data-bs-target="#tabCustom" type="button" role="tab">
+                        <i class="bi bi-magic me-1"></i> Generate New Course from Title
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="choiceCTabsContent">
+                <!-- Option C1: Pick other existing course -->
+                <div class="tab-pane fade show active" id="tabExisting" role="tabpanel">
+                    <form method="POST" id="formChoiceC1" onsubmit="handleChoiceSubmit('btnChoiceC1', 'Enrolling in Course...')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="pick_other_course">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold text-dark-green">Choose Existing Course</label>
+                                <select name="other_course_id" class="form-select py-2" required>
+                                    <option value="" disabled selected>-- Select an Existing Course --</option>
+                                    {% for oc in other_courses %}
+                                    <option value="{{ oc.id }}">{{ oc.title }}{% if oc.course_code %} [{{ oc.course_code }}]{% endif %}</option>
+                                    {% empty %}
+                                    <option value="" disabled>No other courses available.</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-dark-green">Select Level</label>
+                                <select name="other_level" class="form-select py-2">
+                                    <option value="Beginner" selected>Tier 1: Beginner (Harvard)</option>
+                                    <option value="Intermediate">Tier 2: Intermediate (MIT)</option>
+                                    <option value="Advanced">Tier 3: Advanced (Stanford/CMU)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-action-primary" id="btnChoiceC1">
+                            <i class="bi bi-check-circle-fill"></i> Enroll in Selected Course
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Option C2: Generate new course from title (Prompt 3 flow) -->
+                <div class="tab-pane fade" id="tabCustom" role="tabpanel">
+                    <form method="POST" id="formChoiceC2" onsubmit="handleChoiceSubmit('btnChoiceC2', 'Generating Course via AI (Zero Wait)...')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="generate_new_course">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark-green">Type Custom Course Title</label>
+                            <input type="text" name="custom_course_title" class="form-control py-2" placeholder="e.g. Cloud Computing with Kubernetes, or Cyber Defense Engineering" required>
+                            <small class="text-muted" style="font-size: 11px;">
+                                <i class="bi bi-cpu me-1"></i>Our AI will architect a 7-day university-benchmarked curriculum tailored specifically to your title.
+                            </small>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark-green">Select Benchmark Tier</label>
+                                <select name="custom_level" class="form-select py-2">
+                                    <option value="Beginner" selected>Beginner (Foundations & Clean Code)</option>
+                                    <option value="Intermediate">Intermediate (Data Structures & Logic)</option>
+                                    <option value="Advanced">Advanced (Systems Architecture & AI)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark-green">Weekly Commitment</label>
+                                <select name="custom_pace" class="form-select py-2">
+                                    <option value="Standard" selected>Standard (3-5 hrs/week)</option>
+                                    <option value="Intense">Intense (10+ hrs/week)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-action-primary" id="btnChoiceC2">
+                            <i class="bi bi-sparkles"></i> Generate & Enroll in Course
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHOICE (a): Go directly to the dashboard -->
+    <div class="choice-card">
+        <div class="choice-header">
+            <div class="d-flex align-items-center">
+                <span class="choice-tag">A</span>
+                <h4 class="choice-title">Go Directly to Dashboard</h4>
+            </div>
+        </div>
+        <p class="choice-desc">
+            You don't have to start a course right now. You can jump directly to your student dashboard to review notifications, manage settings, and explore at your own pace.
+        </p>
+
+        <div class="ms-md-5 ps-md-2">
+            <a href="{% url 'dashboard' %}" class="btn-action-outline">
+                <i class="bi bi-speedometer2"></i> Skip to Dashboard
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function handleChoiceSubmit(buttonId, loadingText) {
+    var btn = document.getElementById(buttonId);
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> ' + loadingText;
+    }
+}
+</script>
+
+</body>
+</html>

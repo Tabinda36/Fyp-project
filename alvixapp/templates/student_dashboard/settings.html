@@ -1,0 +1,190 @@
+{% extends "student_dashboard/dashboard.html"%}
+{% block content %}
+
+<style>
+/* ===============================
+        SETTINGS PAGE STYLES
+==================================*/
+
+body {
+    background: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    color: #064e3b;
+}
+
+.settings-container {
+    max-width: 750px;
+}
+
+.settings-card {
+    border: 1.5px solid #d4af37 !important;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.settings-header {
+    background: #fdfbf7;
+    border-bottom: 1.5px solid #d4af37;
+    padding: 30px;
+}
+
+.settings-header h3 {
+    color: #064e3b;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    text-align: center;
+}
+
+.settings-body {
+    padding: 40px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    font-weight: 700;
+    color: #064e3b;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* Inputs and Selects */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #d4af37 !important;
+    border-radius: 12px;
+    background: #FFFFFF;
+    font-size: 0.95rem;
+    color: #064e3b !important;
+}
+
+input:focus, select:focus {
+    outline: none !important;
+    border-color: #b89628 !important;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Checkbox styling */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fdfbf7;
+    padding: 14px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #064e3b;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Submit Button */
+.settings-btn {
+    width: 100%;
+    border: 1.5px solid #d4af37;
+    border-radius: 50px;
+    padding: 14px;
+    background: linear-gradient(135deg, #064e3b, #047857);
+    color: #FFFFFF !important;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(6, 78, 59, 0.2);
+    cursor: pointer;
+}
+
+.settings-btn:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+
+@media(max-width: 768px) {
+    .settings-body {
+        padding: 25px 20px;
+    }
+}
+</style>
+
+<div class="container settings-container py-5">
+    <div class="card settings-card">
+        
+        <!-- Header -->
+        <div class="settings-header text-center">
+            <h3>⚙️ Account Settings</h3>
+        </div>
+
+        <!-- Body -->
+        <div class="settings-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Theme Selection -->
+                {% if form.theme %}
+                <div class="form-group">
+                    <label for="{{ form.theme.id_for_label }}">Theme Mode</label>
+                    {{ form.theme }}
+                </div>
+                {% endif %}
+
+                <!-- Essential Toggles -->
+                <div class="mt-4">
+                    <p style="font-weight: 700; color: #064e3b; margin-bottom: 15px;">Notifications & Privacy</p>
+                    
+                    {% if form.email_notifications %}
+                    <div class="checkbox-group">
+                        {{ form.email_notifications }}
+                        <label for="{{ form.email_notifications.id_for_label }}">Email Notifications</label>
+                    </div>
+                    {% endif %}
+
+                    {% if form.ai_notifications %}
+                    <div class="checkbox-group">
+                        {{ form.ai_notifications }}
+                        <label for="{{ form.ai_notifications.id_for_label }}">AI Assistant Notifications</label>
+                    </div>
+                    {% endif %}
+
+                    {% if form.public_profile %}
+                    <div class="checkbox-group">
+                        {{ form.public_profile }}
+                        <label for="{{ form.public_profile.id_for_label }}">Make Profile Public</label>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mt-4 text-center">
+                    <button type="submit" class="settings-btn">
+                        💾 Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

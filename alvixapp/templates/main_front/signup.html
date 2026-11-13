@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALVIX - Student Registration</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #eef2f0;
+        background-image:
+            radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.15) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(6, 78, 59, 0.3) 0px, transparent 50%);
+        padding: 30px 15px;
+        color: #064e3b;
+    }
+    .signup-card {
+        width: 100%;
+        max-width: 600px;
+        background: #ffffff;
+        border: 2px solid #d4af37;
+        border-radius: 24px;
+        padding: 40px 35px;
+        color: #064e3b;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 25px rgba(212, 175, 55, 0.2);
+        position: relative;
+    }
+    .logo-circle {
+        width: 75px;
+        height: 75px;
+        margin: 0 auto 12px auto;
+        border-radius: 50%;
+        background: #fcfbf7;
+        border: 2px solid #d4af37;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    }
+    .logo-circle img { width: 100%; height: 100%; object-fit: contain; }
+    h2 { text-align: center; font-size: 26px; font-weight: 800; color: #064e3b; margin-bottom: 4px; }
+    .subtitle { text-align: center; font-size: 14px; color: #047857; margin-bottom: 24px; }
+    
+    /* Stepper indicator */
+    .steps-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed rgba(212, 175, 55, 0.5);
+    }
+    .step-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 8px 16px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .step-pill.active {
+        background: linear-gradient(135deg, #064e3b, #047857);
+        color: #ffffff;
+        border: 1px solid #d4af37;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }
+    .step-pill.completed {
+        background: #d4af37;
+        color: #064e3b;
+    }
+    .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+    }
+    .step-pill.active .step-num { background: #d4af37; color: #064e3b; font-weight: 800; }
+
+    /* Form Fields */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #064e3b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-control, .form-select {
+        width: 100%;
+        padding: 11px 14px;
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        outline: none;
+        font-size: 14px;
+        color: #064e3b;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #d4af37;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+        color: #064e3b;
+    }
+    
+    /* Action Buttons */
+    .primary-btn {
+        width: 100%;
+        margin-top: 15px;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 13px;
+        background: linear-gradient(135deg, #064e3b, #047857);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 6px 15px rgba(6, 78, 59, 0.3);
+    }
+    .primary-btn:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        box-shadow: 0 8px 20px rgba(6, 78, 59, 0.4), 0 0 10px rgba(212, 175, 55, 0.3);
+        transform: translateY(-1px);
+    }
+
+    /* Alerts & Verification */
+    .alert-error {
+        margin-top: 15px;
+        padding: 12px 16px;
+        background: #fef2f2;
+        border: 1px solid #fca5a5;
+        color: #991b1b;
+        border-radius: 12px;
+        font-size: 13px;
+        text-align: center;
+    }
+    .login-link { text-align: center; margin-top: 22px; font-size: 13px; color: #047857; }
+    .login-link a { color: #064e3b; font-weight: 700; text-decoration: underline; }
+
+    .otp-input {
+        letter-spacing: 8px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 800;
+        color: #064e3b;
+        padding: 14px;
+    }
+    .info-badge {
+        background: rgba(212, 175, 55, 0.15);
+        border: 1px solid #d4af37;
+        color: #064e3b;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div class="signup-card">
+    <div class="logo">
+        <div class="logo-circle">
+            <img src="{% static 'images/LOGO.alvix.png' %}" alt="ALVIX Logo">
+        </div>
+        <h2>Join ALVIX Learning</h2>
+        <p class="subtitle">Create your account to begin your adaptive learning journey</p>
+    </div>
+
+    {% if step == 'verify' %}
+    <!-- ================= STEP 2: OTP VERIFICATION ================= -->
+    <div class="steps-nav">
+        <div class="step-pill completed"><i class="bi bi-check-lg"></i> Account</div>
+        <div class="step-pill active"><span class="step-num">2</span> Verification</div>
+    </div>
+
+    <div class="text-center mb-4">
+        <h5 class="fw-bold" style="color: #064e3b;">Confirm Email Address</h5>
+        <p class="text-muted small">We've sent a 6-digit verification code to <strong>{{ email }}</strong>.</p>
+        
+        {% if verification_code_debug %}
+        <div class="badge bg-warning text-dark py-2 px-3 mb-3">
+            <i class="bi bi-code-slash me-1"></i> Testing Code: <strong>{{ verification_code_debug }}</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="POST" id="verifyForm" onsubmit="handleVerifySubmit()">
+        {% csrf_token %}
+        <input type="hidden" name="verify_code_submit" value="1">
+        <div class="form-group mb-4">
+            <label class="text-center w-100">Enter 6-Digit Code</label>
+            <input type="text" name="verification_code" class="form-control otp-input" placeholder="------" maxlength="6" required autofocus>
+        </div>
+        <button type="submit" class="primary-btn" id="verifyBtn">
+            <i class="bi bi-patch-check-fill me-2"></i> Verify & Proceed to Assessment
+        </button>
+    </form>
+
+    {% else %}
+    <!-- ================= STEP 1: ACCOUNT REGISTRATION ================= -->
+    <div class="steps-nav">
+        <div class="step-pill active">
+            <span class="step-num">1</span> Account Details
+        </div>
+        <div class="step-pill">
+            <span class="step-num">2</span> Verification
+        </div>
+    </div>
+
+    <div class="info-badge">
+        <i class="bi bi-person-badge fs-5" style="color: #b8860b;"></i>
+        <span>Register below to obtain your unique ALVIX Student ID. You will complete your 3-question learning assessment on first login.</span>
+    </div>
+
+    <form method="POST" id="signupForm" onsubmit="handleSignupSubmit()">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label><i class="bi bi-person me-1"></i> Student Full Name</label>
+            <input type="text" name="full_name" class="form-control" placeholder="e.g. John Doe" value="{{ saved_data.full_name|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label><i class="bi bi-at me-1"></i> Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Choose a unique username" value="{{ saved_data.username|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label><i class="bi bi-envelope me-1"></i> Email Address</label>
+            <input type="email" name="email" class="form-control" placeholder="student@example.com" value="{{ saved_data.email|default:'' }}" required>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label><i class="bi bi-lock me-1"></i> Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Create password" required minlength="6">
+            </div>
+            <div class="col-md-6 form-group">
+                <label><i class="bi bi-shield-check me-1"></i> Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required minlength="6">
+            </div>
+        </div>
+
+        <button type="submit" class="primary-btn" id="signupBtn">
+            <i class="bi bi-send-check me-2"></i> Create Account & Send Verification Code
+        </button>
+    </form>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert-error">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="login-link">
+        Already registered? <a href="{% url 'login' %}">Login to Dashboard</a>
+    </div>
+</div>
+
+<script>
+function handleSignupSubmit() {
+    var btn = document.getElementById('signupBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Sending Code...';
+    }
+}
+
+function handleVerifySubmit() {
+    var btn = document.getElementById('verifyBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Verifying...';
+    }
+}
+</script>
+
+</body>
+</html>

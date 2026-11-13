@@ -1,0 +1,1121 @@
+{% extends 'student_dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-3" style="max-width: 100% !important;">
+    
+    <!-- Navigation Breadcrumbs / Title Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-4" style="border-color: #D4AF37 !important;">
+        <div>
+            <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px; color: #8C7320 !important;">
+                <i class="bi bi-mortarboard-fill me-1"></i> COURSE: {{ course_title }}
+            </span>
+            <h2 class="fw-bold mb-0 mt-1" style="color: #01411C;">
+                <span class="badge golden-badge me-2 fs-6">Day {{ lesson.day_number }}</span>{{ lesson.title }}
+            </h2>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex flex-wrap gap-2 align-items-center">
+            
+            <span id="lessonWatchTimeBadge" class="badge {% if lesson.watch_time_completed %}bg-success{% else %}bg-secondary{% endif %} rounded-pill py-2 px-3 fw-semibold shadow-sm d-flex align-items-center gap-1">
+                <i class="bi bi-stopwatch me-1"></i> Watch Time: {{ lesson.watch_time_seconds|default:0 }}s / {{ lesson.required_watch_seconds|default:180 }}s
+            </span>
+
+            <a href="{% url 'download_lesson_ppt' lesson.id %}" class="btn btn-sm btn-golden shadow-sm fw-semibold d-flex align-items-center gap-1" title="Download editable .pptx file">
+                <i class="bi bi-file-earmark-slides-fill"></i> Download PPT (.pptx)
+            </a>
+            <a href="{% url 'assignment_view' %}?lesson_id={{ lesson.id }}" class="btn btn-sm btn-outline-success rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-pencil-square me-1"></i> Assignment Challenge
+            </a>
+            <a href="{% url 'quiz_view' %}?lesson_id={{ lesson.id }}" class="btn btn-sm btn-outline-dark rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-patch-question me-1"></i> Diagnostic Quiz
+            </a>
+            <a href="{% url 'course_content' %}" class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Syllabus
+            </a>
+        </div>
+    </div>
+
+    <!-- MASTERCLASS STUDIO SCREEN: SLIDES STAGE (LEFT) + SLIDE EXPLANATION IN TEXT (RIGHT) -->
+    <div class="row g-4 align-items-stretch mb-4" id="masterclassStudio">
+        
+        <!-- COLUMN 1: LIVE SLIDE PRESENTATION & AUDIO PLAYER (WIDESCREEN 100% FOCUS) -->
+        <div class="col-12 d-flex flex-column">
+            <div class="card border-0 shadow-lg h-100 presentation-card overflow-hidden d-flex flex-column" id="presentationWrapper">
+                
+                <!-- Player Header Bar -->
+                <div class="card-header bg-white border-bottom border-warning-subtle d-flex flex-wrap justify-content-between align-items-center py-2 px-3 gap-2">
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="badge" style="background: linear-gradient(135deg, #064E3B, #106E53); color: #D4AF37; font-weight: 700; font-size: 0.8rem; padding: 6px 12px; border-radius: 8px;">
+                            <i class="bi bi-file-earmark-slides-fill me-1"></i> ALVIX Slide Player
+                        </span>
+                        <span class="badge bg-light text-dark border fw-bold" id="slideCounterBadge">
+                            Slide <span id="currentSlideNum">1</span> of <span id="totalSlidesNum">{{ total_slides }}</span>
+                        </span>
+                    </div>
+
+                    <!-- Slide & Audio Explanation Action Options -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-sm btn-golden fw-bold px-3 py-1 rounded-pill shadow-sm" id="btnHeaderSlideExp" onclick="focusSlideExplanation()" title="View on-screen text breakdown & practical examples">
+                            <i class="bi bi-file-text-fill me-1"></i> 1. Slide Explanation
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3 py-1 rounded-pill shadow-sm" id="btnHeaderAudio" onclick="playCurrentSlideVoice()" title="Play / Pause spoken audio explanation">
+                            <i id="headerAudioIcon" class="bi bi-volume-up-fill me-1"></i> 2. Audio Explanation
+                        </button>
+                        <!-- Sound wave animation -->
+                        <div class="d-flex align-items-center gap-2 ps-2 border-start" id="voiceIndicator">
+                            <div class="sound-wave" id="soundWave">
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                                <span class="bar"></span>
+                            </div>
+                            <span class="small fw-bold text-success" id="playerStatus">Ready to Learn</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 16:9 Presentation Slide Canvas -->
+                <div class="presentation-canvas-container position-relative flex-grow-1" id="presentationCanvas">
+                    
+                    <!-- Slide Viewport (Active Slide HTML injected here) -->
+                    <div id="slideViewport" class="w-100 h-100 position-relative p-4 p-md-5 d-flex flex-column justify-content-between">
+                        <!-- Populated dynamically by JavaScript -->
+                    </div>
+
+                    <!-- Slide Explanation Drawer (Available during Fullscreen) -->
+                    <div id="slideExplanationDrawer" class="position-absolute w-100 h-100 top-0 start-0 p-4 p-md-5 d-none flex-column" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(8px); z-index: 30; overflow-y: auto; border-radius: 20px;">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background: #064E3B; color: #D4AF37; font-size: 0.85rem; padding: 6px 12px; border-radius: 8px;">
+                                    <i class="bi bi-file-text-fill text-warning me-1"></i> Slide <span id="drawerSlideNum">1</span> Detailed Explanation
+                                </span>
+                                <h5 class="mb-0 fw-bold text-success text-truncate" id="drawerSlideTitle" style="max-width: 520px;">Core Concepts</h5>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle" onclick="toggleSlideExplanation(false)" title="Close Explanation (Esc)">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+
+                        <!-- Content Breakdown & Practical Examples -->
+                        <div class="row g-3 my-auto">
+                            <!-- Simple Concept Breakdown -->
+                            <div class="col-lg-6">
+                                <div class="card h-100 p-3 rounded-4 shadow-sm bg-white" style="border-left: 4.5px solid #064E3B !important; border: 1.5px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge rounded-circle p-2" style="background: #f0fdf4; color: #064E3B;"><i class="bi bi-lightbulb-fill fs-5"></i></span>
+                                        <h6 class="fw-bold mb-0 text-success">Simple Concept Explanation</h6>
+                                    </div>
+                                    <div class="small text-secondary" id="drawerConceptText" style="line-height: 1.7; font-size: 0.92rem; white-space: pre-line;">
+                                        <!-- Injected by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Real-World Practical Example -->
+                            <div class="col-lg-6">
+                                <div class="card h-100 p-3 rounded-4 shadow-sm" style="background: #FEF9E7; border: 1.8px solid #D4AF37 !important;">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge rounded-circle p-2" style="background: #064E3B; color: #D4AF37;"><i class="bi bi-building-fill-check fs-5"></i></span>
+                                        <h6 class="fw-bold mb-0 text-dark">Real-World Practical Example</h6>
+                                    </div>
+                                    <div class="small text-dark" id="drawerExampleText" style="line-height: 1.7; font-size: 0.92rem; white-space: pre-line;">
+                                        <!-- Injected by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Key Takeaway & Audio Play Button -->
+                        <div class="mt-3 p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2 shadow-sm" style="background: linear-gradient(135deg, #064E3B, #106E53); color: #ffffff; border: 1.5px solid #D4AF37;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-bookmark-star-fill text-warning fs-5"></i>
+                                <div>
+                                    <span class="badge bg-warning text-dark fw-bold me-2">KEY TAKEAWAY</span>
+                                    <span class="small fw-semibold text-light" id="drawerTakeawayText"></span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-golden fw-bold px-3 py-2 rounded-pill shadow-sm" onclick="playCurrentSlideVoice()">
+                                <i class="bi bi-volume-up-fill me-1"></i> Listen to Audio Explanation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Completion Celebration Overlay -->
+                    <div id="completionOverlay" class="position-absolute w-100 h-100 d-none flex-column align-items-center justify-content-center" style="background: rgba(6, 78, 59, 0.96); z-index: 24;">
+                        <div class="text-center p-4 text-white" style="max-width: 620px;">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-lg" style="width: 80px; height: 80px; background: #D4AF37; color: #064E3B;">
+                                <i class="bi bi-trophy-fill fs-1"></i>
+                            </div>
+                            <h3 class="fw-bold mb-1 text-warning">Day {{ lesson.day_number }} Presentation Completed!</h3>
+                            <p class="text-light opacity-90 small mb-4">
+                                You have successfully reviewed all lecture slides and voice explanations for <strong>{{ lesson.title }}</strong>. Advance your learning with the assignment or quiz.
+                            </p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <button id="replayFullBtn" class="btn btn-outline-warning rounded-pill px-4 fw-semibold">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Replay Presentation
+                                </button>
+                                <a href="{% url 'download_lesson_ppt' lesson.id %}" class="btn rounded-pill px-4 fw-bold" style="background: #D4AF37; color: #064E3B;">
+                                    <i class="bi bi-file-earmark-slides me-1"></i> Download PPT (.pptx)
+                                </a>
+                                <a href="{% url 'assignment_view' %}?lesson_id={{ lesson.id }}" class="btn btn-success rounded-pill px-4 fw-semibold">
+                                    <i class="bi bi-pencil-square me-1"></i> Start Assignment
+                                </a>
+                                <a href="{% url 'quiz_view' %}?lesson_id={{ lesson.id }}" class="btn btn-outline-light rounded-pill px-4 fw-semibold">
+                                    <i class="bi bi-question-circle me-1"></i> Take Quiz
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1. INARA INTRODUCTION CENTER STAGE OVERLAY -->
+                    <div id="inaraIntroStage" class="inara-intro-stage">
+                        <div class="inara-intro-content text-center text-white p-3 p-md-4">
+                            <!-- ALVIX Brand Pill -->
+                            <div class="inara-intro-brand-pill mb-2">
+                                <i class="bi bi-mortarboard-fill text-warning me-1"></i>
+                                <span>ALVIX &bull; Adaptive Learning System</span>
+                            </div>
+
+                            <!-- Lesson Title & Course Track -->
+                            <h3 class="fw-bold text-white mb-1" style="text-shadow: 0 2px 10px rgba(0,0,0,0.6);">
+                                Day {{ lesson.day_number }}: {{ lesson.title }}
+                            </h3>
+                            <p class="text-white-50 small mb-3">
+                                {{ course_title }} &bull; Masterclass Lecture
+                            </p>
+
+                            <!-- Inara Center Avatar Stage -->
+                            <div class="inara-intro-avatar-wrapper position-relative mx-auto my-3" id="inaraIntroAvatarWrapper">
+                                <div class="inara-halo"></div>
+                                <img id="introAvatarImg" class="inara-avatar-img inara-waving"
+                                     src="{{ avatar_assets.resolved_urls.wave|default:avatar_assets.resolved_urls.idle }}" 
+                                     alt="{{ avatar_name_display }}">
+                            </div>
+
+                            <!-- Live Spoken Captions Card -->
+                            <div class="intro-captions-card p-3 rounded-4 shadow mx-auto mb-3" style="max-width: 650px; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(12px); border: 1.5px solid #D4AF37;">
+                                <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                                    <span class="badge" style="background: #D4AF37; color: #064E3B; font-weight: 800; font-size: 0.72rem;">
+                                        <i class="bi bi-chat-quote-fill me-1"></i> {{ avatar_name_display }}
+                                    </span>
+                                    <span class="small text-white-50">Teacher Introduction</span>
+                                </div>
+                                <p id="introCaptionsText" class="text-white small mb-0 fw-medium" style="line-height: 1.6;">
+                                    "{{ intro_display }}"
+                                </p>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex align-items-center justify-content-center gap-3">
+                                <button type="button" id="btnStartIntro" class="btn btn-golden fw-bold rounded-pill px-4 py-2 shadow-lg">
+                                    <i class="bi bi-play-fill fs-5 me-1 align-middle"></i> Start Introduction
+                                </button>
+                                <button type="button" id="btnSkipIntro" class="btn btn-outline-light rounded-pill px-3 py-2 shadow">
+                                    <i class="bi bi-skip-forward-fill me-1"></i> Skip Intro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. INARA CORNER LECTURE AVATAR WIDGET (BOTTOM-RIGHT) -->
+                    <div id="aiTeacherAvatarContainer" class="ai-teacher-avatar-badge-wrapper">
+                    <div id="inaraLectureAvatarContainer" class="inara-corner-badge is-hidden ai-teacher-avatar-badge" title="{{ avatar_name_display }} presenting the lecture">
+                        <div class="avatar-inner-flex">
+                            <div class="inara-corner-img-box">
+                                <img id="lectureCornerAvatarImg" class="inara-breathing"
+                                     src="{{ avatar_assets.resolved_urls.idle }}" 
+                                     alt="{{ avatar_name_display }}">
+                            </div>
+
+                            <!-- Built-in SVG Cartoon Avatar fallback / placeholder definition -->
+                            <div class="d-none" id="avatarPlaceholderSvgDef">
+                                <svg id="teacherAvatarSvg" viewBox="0 0 120 130" width="72" height="80" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <linearGradient id="hijabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#106E53" />
+                                            <stop offset="100%" stop-color="#064E3B" />
+                                        </linearGradient>
+                                        <linearGradient id="goldTrim" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#D4AF37" />
+                                            <stop offset="100%" stop-color="#B8860B" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M 22 125 C 22 62, 30 18, 60 18 C 90 18, 98 62, 98 125 C 84 129, 36 129, 22 125 Z" fill="url(#hijabGrad)" />
+                                    <g id="avatarHeadGroup">
+                                        <path d="M 38 48 C 50 38, 70 38, 82 48 C 74 42, 46 42, 38 48 Z" fill="url(#goldTrim)" />
+                                        <path d="M 39 52 C 39 36, 81 36, 81 52 C 81 80, 72 96, 60 96 C 48 96, 39 80, 39 52 Z" fill="#FDDEC7" />
+                                        <g id="avatarMouthGroup">
+                                            <path class="avatar-mouth-idle" d="M 54 84 Q 60 89 66 84" stroke="#DC2626" stroke-width="2.2" fill="none" stroke-linecap="round" />
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <div class="avatar-info-box">
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <span class="avatar-live-dot"></span>
+                                    <span class="avatar-title-label">{{ avatar_name_display }} &bull; AI Teacher</span>
+                                </div>
+                                <div class="avatar-speech-status">
+                                    <div class="mini-sound-bars">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <span id="avatarSpeechText" class="avatar-speech-msg">Ready to teach</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Floating Teacher Live Subtitles Banner -->
+                    <div class="floating-caption-bar shadow-sm" id="captionBar">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill bg-warning text-dark px-2 py-1 small fw-bold">
+                                <i class="bi bi-volume-up-fill me-1"></i> Teacher Voice
+                            </span>
+                            <p class="mb-0 text-white small fw-normal text-truncate-2" id="captionText">
+                                Welcome to today's masterclass presentation. Click Play or 'Audio Explanation' to listen.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Slide Progress Scrubber Bar -->
+                <div class="progress rounded-0" id="slideProgressWrapper" style="height: 5px; background: #e2e8f0;">
+                    <div id="slideProgressBar" class="progress-bar" role="progressbar" style="width: 14%; background: linear-gradient(90deg, #D4AF37, #106E53); transition: width 0.4s ease;"></div>
+                </div>
+
+                <!-- Player Control Bar -->
+                <div class="card-footer bg-light border-0 py-3 px-3 px-md-4" id="slideControlFooter">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        
+                        <!-- Playback Controls -->
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="prevSlideBtn" class="btn btn-sm btn-outline-dark rounded-circle control-icon-btn" title="Previous Slide (Left Arrow)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+
+                            <button id="mainPlayPauseBtn" class="btn btn-golden rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;" title="Play / Pause Audio (Spacebar)">
+                                <i id="mainPlayIcon" class="bi bi-play-fill fs-4 text-dark ms-1"></i>
+                            </button>
+
+                            <button id="nextSlideBtn" class="btn btn-sm btn-outline-dark rounded-circle control-icon-btn" title="Next Slide (Right Arrow)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+
+                            <button id="replaySlideBtn" class="btn btn-sm btn-outline-secondary rounded-circle control-icon-btn ms-1" title="Replay Current Slide">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+
+                            <span id="videoTimeCounter" class="small fw-bold text-secondary font-monospace ms-2" style="font-size: 0.85rem;">00:00 / 00:56</span>
+                        </div>
+
+                        <!-- Dynamic Slide Navigation Dots / Pills -->
+                        <div class="d-flex align-items-center gap-1 flex-wrap justify-content-center" id="slideDotsContainer">
+                            <!-- Populated dynamically by JavaScript -->
+                        </div>
+
+                        <!-- Audio & Screen Controls -->
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Closed Captions Toggle Button -->
+                            <button id="captionsToggleBtn" class="btn btn-sm btn-golden rounded-circle control-icon-btn shadow-sm" title="Toggle Closed Captions (Subtitles)">
+                                <i class="bi bi-chat-quote-fill"></i>
+                            </button>
+
+                            <!-- Speed dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill fw-semibold px-2" type="button" data-bs-toggle="dropdown" id="speedBtn">
+                                    <i class="bi bi-speedometer2 me-1"></i><span id="speedLabel">1.0x</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><a class="dropdown-item speed-option" href="#" data-speed="0.75">0.75x (Slower)</a></li>
+                                    <li><a class="dropdown-item speed-option active" href="#" data-speed="1.0">1.0x (Normal)</a></li>
+                                    <li><a class="dropdown-item speed-option" href="#" data-speed="1.25">1.25x (Fast)</a></li>
+                                    <li><a class="dropdown-item speed-option" href="#" data-speed="1.5">1.5x (Faster)</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Mute / Unmute Button -->
+                            <button id="muteToggleBtn" class="btn btn-sm btn-outline-secondary rounded-circle control-icon-btn" title="Toggle Audio Voice">
+                                <i id="muteIcon" class="bi bi-volume-up-fill"></i>
+                            </button>
+
+                            <!-- Fullscreen Button -->
+                            <button id="fullscreenBtn" class="btn btn-sm btn-outline-secondary rounded-circle control-icon-btn" title="Fullscreen Presentation">
+                                <i class="bi bi-fullscreen"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- COLUMN 2: LIVE SLIDE EXPLANATION (CONCEALED INTO DRAWER OVERLAY AS REQUESTED) -->
+        <div class="col-xl-5 col-lg-5 d-none" id="slideExplanationColumn" style="display: none !important;">
+            <div class="card border-0 shadow-lg h-100 rounded-4 overflow-hidden d-flex flex-column explanation-panel-card" id="slideExplanationCard" style="border: 2px solid #D4AF37 !important; background: #ffffff;">
+                
+                <!-- Explanation Panel Header -->
+                <div class="card-header bg-white border-bottom border-warning-subtle py-3 px-3 px-md-4 d-flex justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge" style="background: #064E3B; color: #D4AF37; font-size: 0.82rem; padding: 6px 12px; border-radius: 8px;">
+                            <i class="bi bi-file-text-fill text-warning me-1"></i> Slide <span id="textExpSlideNum">1</span> Explanation
+                        </span>
+                        <h6 class="mb-0 fw-bold text-success text-truncate" id="textExpSlideTitle" style="max-width: 220px;">Core Concepts</h6>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-golden fw-bold rounded-pill px-3 shadow-sm d-flex align-items-center gap-1" id="btnSideAudio" onclick="playCurrentSlideVoice()">
+                        <i class="bi bi-volume-up-fill"></i> <span id="btnSideAudioLabel">Listen Audio</span>
+                    </button>
+                </div>
+
+                <!-- Explanation Scrollable Body with Clean Structured Text Cards -->
+                <div class="card-body p-3 p-md-4 d-flex flex-column gap-3 explanation-scroll-container flex-grow-1" style="background: #fdfcf9;">
+                    
+                    <!-- 1. Simple Concept Explanation in Text -->
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white" style="border-left: 4.5px solid #064E3B !important; border: 1.5px solid #e2e8f0;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge rounded-circle p-2" style="background: #f0fdf4; color: #064E3B;"><i class="bi bi-lightbulb-fill fs-5"></i></span>
+                            <h6 class="fw-bold mb-0 text-success">1. Simple Concept Explanation</h6>
+                        </div>
+                        <div class="small text-secondary" id="textExpConcept" style="line-height: 1.7; font-size: 0.93rem; white-space: pre-line;">
+                            <!-- Injected dynamically by JavaScript for current slide -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Real-World Practical Example in Text -->
+                    <div class="card border-0 shadow-sm rounded-4 p-3" style="background: #FEF9E7; border: 1.8px solid #D4AF37 !important;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge rounded-circle p-2" style="background: #064E3B; color: #D4AF37;"><i class="bi bi-building-fill-check fs-5"></i></span>
+                            <h6 class="fw-bold mb-0 text-dark">2. Real-World Practical Example</h6>
+                        </div>
+                        <div class="small text-dark" id="textExpExample" style="line-height: 1.7; font-size: 0.93rem; white-space: pre-line;">
+                            <!-- Injected dynamically by JavaScript for current slide -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Key Takeaway Rule in Text -->
+                    <div class="p-3 rounded-4 shadow-sm d-flex flex-column gap-2" style="background: linear-gradient(135deg, #064E3B, #106E53); color: #ffffff; border: 1.5px solid #D4AF37;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-bookmark-star-fill text-warning fs-5"></i>
+                            <span class="badge bg-warning text-dark fw-bold">KEY TAKEAWAY</span>
+                        </div>
+                        <div class="small fw-semibold text-light" id="textExpTakeaway" style="line-height: 1.6; font-size: 0.9rem;">
+                            <!-- Injected dynamically by JavaScript for current slide -->
+                        </div>
+                    </div>
+
+                    <!-- Audio Explanation Info Box -->
+                    <div class="p-3 rounded-3 border bg-white small text-muted d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-headphones text-success fs-5"></i>
+                            <span>Audio Voice: <strong>gTTS Synthesized Speech</strong></span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-semibold" onclick="playCurrentSlideVoice()">
+                            <i class="bi bi-play-circle-fill me-1"></i> Audio Explanation
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- EMBEDDED PRESENTATION DATA JSON SAFELY -->
+<!-- EMBEDDED AVATAR CONFIGURATION SAFELY -->
+<script id="avatarConfigData" type="application/json">
+{
+    "avatar_name": "{{ avatar_name_display|escapejs }}",
+    "avatar_name_spoken": "{{ avatar_name_spoken|escapejs }}",
+    "developer_name": "{{ developer_name|escapejs }}",
+    "university_or_department": "{{ university_or_department|escapejs }}",
+    "student_name": "{{ student_name|escapejs }}",
+    "is_full_intro": {{ is_full_intro|yesno:"true,false" }},
+    "intro_spoken": "{{ intro_spoken|escapejs }}",
+    "intro_display": "{{ intro_display|escapejs }}",
+    "has_custom_avatar": {{ avatar_assets.has_custom_avatar|yesno:"true,false" }},
+    "assets": {
+        "idle": "{{ avatar_assets.resolved_urls.idle|escapejs }}",
+        "wave": "{{ avatar_assets.resolved_urls.wave|escapejs }}",
+        "blink": "{{ avatar_assets.resolved_urls.blink|escapejs }}",
+        "mouth_open": "{{ avatar_assets.resolved_urls.mouth_open|escapejs }}"
+    }
+}
+</script>
+<script src="{% static 'js/inara_player.js' %}"></script>
+
+<script id="presentationData" type="application/json">
+{{ presentation_json|safe }}
+</script>
+
+<style>
+    /* ==========================================
+       INARA AI TEACHER AVATAR & INTRO STAGE STYLES
+       ========================================== */
+    #inaraIntroStage {
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        background: radial-gradient(circle at center, #064E3B 0%, #022C22 75%, #011711 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.85s ease, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    #inaraIntroStage.inara-stage-transitioning {
+        opacity: 0;
+        transform: scale(0.92);
+        pointer-events: none;
+    }
+    .inara-intro-content {
+        max-width: 660px;
+        width: 100%;
+        margin: auto;
+    }
+    .inara-intro-brand-pill {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(254, 249, 231, 0.12);
+        border: 1.5px solid #D4AF37;
+        color: #FEF9E7;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 5px 16px;
+        border-radius: 30px;
+        letter-spacing: 0.5px;
+    }
+    .inara-intro-avatar-wrapper {
+        width: 220px;
+        height: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .inara-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: bottom center;
+        filter: drop-shadow(0 10px 25px rgba(212, 175, 55, 0.45));
+        transition: transform 0.2s ease;
+        z-index: 2;
+    }
+    .inara-halo {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, rgba(16, 110, 83, 0) 70%);
+        z-index: 1;
+        animation: inaraHaloGlow 3s infinite alternate;
+    }
+    @keyframes inaraHaloGlow {
+        0% { transform: scale(0.95); opacity: 0.5; }
+        100% { transform: scale(1.18); opacity: 0.9; }
+    }
+
+    /* Waving animation during intro */
+    .inara-waving {
+        animation: inaraWaveMotion 0.45s infinite alternate ease-in-out;
+    }
+    @keyframes inaraWaveMotion {
+        0% { transform: rotate(-3deg); }
+        100% { transform: rotate(3deg); }
+    }
+
+    /* Gentle breathing effect */
+    .inara-breathing {
+        animation: inaraBreatheMotion 3.8s infinite alternate ease-in-out;
+    }
+    @keyframes inaraBreatheMotion {
+        0% { transform: scale(1.0); }
+        100% { transform: scale(1.02); }
+    }
+
+    .inara-tilt-left {
+        transform: rotate(-2deg) scale(1.01) !important;
+    }
+    .inara-tilt-right {
+        transform: rotate(2deg) scale(1.01) !important;
+    }
+
+    /* Bottom-Right Corner Lecture Avatar Widget */
+    #inaraLectureAvatarContainer {
+        position: absolute;
+        bottom: 58px;
+        right: 18px;
+        z-index: 28;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(8px);
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 6px 14px;
+        box-shadow: 0 8px 24px rgba(6, 78, 59, 0.22);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 275px;
+        max-height: 22%;
+        transition: opacity 0.5s ease, transform 0.4s ease;
+    }
+    #inaraLectureAvatarContainer.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(20px);
+    }
+    .inara-corner-img-box {
+        width: 72px;
+        height: 80px;
+        position: relative;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .inara-corner-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: bottom center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .inara-waving,
+        .inara-breathing,
+        .inara-halo,
+        #inaraIntroStage {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #inaraLectureAvatarContainer {
+            bottom: 64px;
+            right: 10px;
+            padding: 4px 10px;
+            max-width: 220px;
+        }
+        .inara-corner-img-box {
+            width: 54px;
+            height: 60px;
+        }
+        .inara-intro-avatar-wrapper {
+            width: 160px;
+            height: 160px;
+        }
+    }
+
+    /* Branding & Palette */
+    .golden-badge {
+        background-color: #064E3B !important;
+        color: #D4AF37 !important;
+        border: 1.5px solid #D4AF37 !important;
+        font-weight: 700;
+    }
+
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        border: 1px solid #c49f27 !important;
+        font-weight: 700;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-golden:hover {
+        background-color: #c49f27 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    }
+
+    /* AI Teacher Animated Hijab Avatar */
+    .ai-teacher-avatar-badge {
+        position: absolute;
+        bottom: 62px;
+        right: 18px;
+        z-index: 28;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 5px 12px;
+        box-shadow: 0 8px 24px rgba(6, 78, 59, 0.22);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .ai-teacher-avatar-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(212, 175, 55, 0.35);
+    }
+    .avatar-inner-flex {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .avatar-svg-box {
+        width: 72px;
+        height: 80px;
+        position: relative;
+        overflow: visible;
+    }
+    .avatar-live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10B981;
+        display: inline-block;
+        box-shadow: 0 0 8px #10B981;
+    }
+    .is-speaking .avatar-live-dot {
+        background: #D4AF37;
+        box-shadow: 0 0 10px #D4AF37;
+        animation: livePulse 1s infinite alternate;
+    }
+    @keyframes livePulse {
+        from { transform: scale(0.9); opacity: 0.8; }
+        to { transform: scale(1.3); opacity: 1; }
+    }
+    .avatar-title-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #064E3B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .avatar-speech-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .mini-sound-bars {
+        display: flex;
+        align-items: center;
+        gap: 2.5px;
+        height: 12px;
+    }
+    .mini-sound-bars span {
+        width: 2.5px;
+        height: 4px;
+        background: #106E53;
+        border-radius: 2px;
+        transition: height 0.2s ease;
+    }
+    .is-speaking .mini-sound-bars span {
+        background: #D4AF37;
+        animation: barBounce 0.55s infinite ease-in-out alternate;
+    }
+    .is-speaking .mini-sound-bars span:nth-child(1) { animation-delay: 0.05s; }
+    .is-speaking .mini-sound-bars span:nth-child(2) { animation-delay: 0.20s; }
+    .is-speaking .mini-sound-bars span:nth-child(3) { animation-delay: 0.12s; }
+    .is-speaking .mini-sound-bars span:nth-child(4) { animation-delay: 0.28s; }
+    @keyframes barBounce {
+        0% { height: 3px; }
+        100% { height: 14px; }
+    }
+    .avatar-speech-msg {
+        font-size: 0.72rem;
+        color: #64748B;
+        font-weight: 600;
+    }
+    .is-speaking .avatar-speech-msg {
+        color: #064E3B;
+        font-weight: 700;
+    }
+    /* Head bobbing animation while speaking */
+    #avatarHeadGroup {
+        transform-origin: 60px 110px;
+        transition: transform 0.2s ease;
+    }
+    .is-speaking #avatarHeadGroup {
+        animation: headBobTalk 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes headBobTalk {
+        0% { transform: rotate(0deg) translateY(0); }
+        25% { transform: rotate(1.2deg) translateY(-1px); }
+        50% { transform: rotate(-0.8deg) translateY(0.5px); }
+        75% { transform: rotate(0.8deg) translateY(-0.8px); }
+        100% { transform: rotate(-1.2deg) translateY(0); }
+    }
+    /* Eye Blinking */
+    .avatar-eye {
+        transform-origin: center;
+        animation: eyeBlink 4.5s infinite;
+    }
+    @keyframes eyeBlink {
+        0%, 96%, 100% { transform: scaleY(1); }
+        98% { transform: scaleY(0.1); }
+    }
+    /* Mouth Talking Lip-Sync Animation */
+    .avatar-mouth-idle {
+        display: block;
+    }
+    .avatar-mouth-talk {
+        display: none;
+    }
+    .is-speaking .avatar-mouth-idle {
+        display: none;
+    }
+    .is-speaking .avatar-mouth-talk {
+        display: block;
+        transform-origin: 60px 85px;
+        animation: mouthTalk 0.32s infinite alternate ease-in-out;
+    }
+    @keyframes mouthTalk {
+        0% { transform: scale(0.9, 0.45); }
+        50% { transform: scale(1.15, 1.25); }
+        100% { transform: scale(0.95, 0.8); }
+    }
+
+    /* Presentation Canvas 16:9 Aspect Ratio */
+    .presentation-card {
+        border-radius: 20px;
+        border: 2px solid #D4AF37 !important;
+        background: #ffffff;
+    }
+
+    .explanation-panel-card {
+        border-radius: 20px;
+        border: 2px solid #D4AF37 !important;
+        background: #ffffff;
+    }
+
+    .presentation-canvas-container {
+        width: 100%;
+        min-height: 520px;
+        background: #f8fafc;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .explanation-scroll-container {
+        max-height: 560px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #D4AF37 #f1f5f9;
+    }
+    .explanation-scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .explanation-scroll-container::-webkit-scrollbar-thumb {
+        background: #D4AF37;
+        border-radius: 6px;
+    }
+    .explanation-scroll-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .pulse-glow {
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.75) !important;
+        border-color: #D4AF37 !important;
+        transform: scale(1.008);
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Sound Wave Animation */
+    .sound-wave {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+    }
+    .sound-wave .bar {
+        width: 3px;
+        height: 4px;
+        background: #106E53;
+        border-radius: 3px;
+        transition: height 0.2s ease;
+    }
+    .sound-wave.speaking .bar {
+        animation: wave-animation 1s infinite ease-in-out;
+    }
+    .sound-wave.speaking .bar:nth-child(1) { animation-delay: 0.1s; }
+    .sound-wave.speaking .bar:nth-child(2) { animation-delay: 0.3s; }
+    .sound-wave.speaking .bar:nth-child(3) { animation-delay: 0.2s; }
+    .sound-wave.speaking .bar:nth-child(4) { animation-delay: 0.4s; }
+    .sound-wave.speaking .bar:nth-child(5) { animation-delay: 0.15s; }
+
+    @keyframes wave-animation {
+        0%, 100% { height: 4px; }
+        50% { height: 18px; background: #D4AF37; }
+    }
+
+    /* Control Buttons */
+    .control-icon-btn {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .control-icon-btn:hover {
+        transform: scale(1.08);
+        border-color: #064E3B;
+        color: #064E3B;
+    }
+
+    /* Slide Navigation Dots */
+    .slide-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .slide-dot:hover {
+        border-color: #D4AF37;
+        color: #064E3B;
+        transform: translateY(-1px);
+    }
+    .slide-dot.active {
+        background: #064E3B !important;
+        color: #D4AF37 !important;
+        border-color: #D4AF37 !important;
+        box-shadow: 0 2px 6px rgba(6, 78, 59, 0.3);
+    }
+
+    /* Floating Captions Bar */
+    .floating-caption-bar {
+        position: absolute;
+        bottom: 12px;
+        left: 20px;
+        right: 20px;
+        background: rgba(15, 23, 42, 0.88);
+        backdrop-filter: blur(6px);
+        border-radius: 12px;
+        padding: 8px 16px;
+        z-index: 15;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Slide Content Styling Elements */
+    .slide-header-badge {
+        color: #D4AF37;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .slide-main-title {
+        color: #064E3B;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    /* Pulse effect */
+    .pulse-btn {
+        animation: pulse-glow 2s infinite;
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+        70% { box-shadow: 0 0 0 16px rgba(212, 175, 55, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+    }
+
+    /* Slide transition */
+    .slide-fade-in {
+        animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideFadeIn {
+        from { opacity: 0; transform: translateY(10px) scale(0.99); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Code styling */
+    pre.slide-code-box {
+        background: #0f172a;
+        color: #f1f5f9;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 0.82rem;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    /* Spin icon animation */
+    @keyframes spin-clockwise {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spin-icon {
+        display: inline-block;
+        animation: spin-clockwise 1.2s infinite linear;
+    }
+</style>
+
+<!-- PRESENTATION & TEACHER VOICE ENGINE SCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Speech synthesis engine validator with female voice prioritization
+    const isFemaleVoice = (v) => {
+        const name = (v.name || '').toLowerCase();
+        const maleHints = ['david', 'guy', 'george', 'mark', 'michael', 'paul', 'stefan', 'james', 'richard'];
+        if (maleHints.some(h => name.includes(h))) return false;
+        const femaleHints = ['female', 'jenny', 'aria', 'zira', 'samantha', 'victoria', 'karen', 'moira', 'natural', 'google us english'];
+        return femaleHints.some(h => name.includes(h));
+    };
+
+    if (window.speechSynthesis && 'speechSynthesis' in window) {
+        // Speech synthesis API ready
+    }
+
+    // 2. Parse Presentation Data (All Dynamic Slides 13+)
+    let presentationPayload = {};
+    try {
+        const rawJson = document.getElementById('presentationData').textContent;
+        presentationPayload = JSON.parse(rawJson);
+    } catch (err) {
+        console.error("Failed to parse presentation JSON:", err);
+    }
+
+    let slidesList = presentationPayload.slides_list || [];
+    const lessonTitle = "{{ lesson.title|escapejs }}" || "Masterclass Lecture";
+    const courseTitle = "{{ course_title|escapejs }}" || "Academic Course";
+    const dayNum = {{ lesson.day_number|default:1 }};
+
+    // 3. Parse Avatar Configuration
+    let avatarConfig = {};
+    try {
+        const rawAvatar = document.getElementById('avatarConfigData').textContent;
+        avatarConfig = JSON.parse(rawAvatar);
+    } catch (err) {
+        console.error("Failed to parse avatarConfigData:", err);
+    }
+
+    // 4. Initialize AvatarPlayer
+    const avatarPlayer = new AvatarPlayer(avatarConfig);
+    const introImg = document.getElementById('introAvatarImg');
+    const cornerImg = document.getElementById('lectureCornerAvatarImg');
+    if (introImg) avatarPlayer.registerElement(introImg, 'intro');
+    if (cornerImg) avatarPlayer.registerElement(cornerImg, 'corner');
+
+    // 5. Initialize LecturePlayer
+    const lecturePlayer = new LecturePlayer(avatarPlayer, {
+        slidesList: slidesList,
+        lessonTitle: lessonTitle,
+        courseTitle: courseTitle,
+        dayNum: dayNum,
+        csrfToken: "{{ csrf_token }}",
+        watchTimeUrl: "{% url 'record_lesson_watch_time' lesson.id %}"
+    });
+    window.lecturePlayer = lecturePlayer;
+
+    // 6. Initialize IntroSequence (10s Introduction + Auto-Transition)
+    const introSequence = new IntroSequence(avatarPlayer, avatarConfig, () => {
+        lecturePlayer.startPlayback();
+    });
+    window.introSequence = introSequence;
+
+    // 7. Slide Explanation Drawer Overlay Hooks
+    window.toggleSlideExplanation = function(show) {
+        const drawer = document.getElementById('slideExplanationDrawer');
+        if (!drawer) return;
+        if (show) {
+            window.updateExplanationContent(lecturePlayer.currentIdx);
+            drawer.classList.remove('d-none');
+            drawer.classList.add('d-flex');
+        } else {
+            drawer.classList.remove('d-flex');
+            drawer.classList.add('d-none');
+        }
+    };
+
+    window.focusSlideExplanation = function() {
+        window.toggleSlideExplanation(true);
+    };
+
+    window.playCurrentSlideVoice = function() {
+        lecturePlayer.togglePlay();
+    };
+
+    // Close explanation drawer on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.code === 'Escape') {
+            window.toggleSlideExplanation(false);
+        }
+    });
+
+    // 8. Synchronize Slide Explanation Drawer Content with Active Slide
+    window.updateExplanationContent = function(idx) {
+        const slide = (slidesList && slidesList[idx]) ? slidesList[idx] : {};
+        const titleText = slide.title || `Slide ${idx + 1}`;
+
+        // Drawer Elements
+        const drawerNum = document.getElementById('drawerSlideNum');
+        const drawerTitle = document.getElementById('drawerSlideTitle');
+        const drawerConcept = document.getElementById('drawerConceptText');
+        const drawerExample = document.getElementById('drawerExampleText');
+        const drawerTakeaway = document.getElementById('drawerTakeawayText');
+
+        if (drawerNum) drawerNum.innerText = idx + 1;
+        if (drawerTitle) drawerTitle.innerText = titleText;
+
+        // Concept text
+        let conceptVal = slide.concept_explanation || slide.teacher_briefing || slide.speaker_notes || '';
+        if (!conceptVal && slide.key_points && Array.isArray(slide.key_points)) {
+            conceptVal = slide.key_points.join('\n\n• ');
+            if (conceptVal) conceptVal = '• ' + conceptVal;
+        } else if (!conceptVal && slide.points && Array.isArray(slide.points)) {
+            conceptVal = slide.points.join('\n\n• ');
+            if (conceptVal) conceptVal = '• ' + conceptVal;
+        }
+        if (!conceptVal) {
+            conceptVal = `This module explores the foundational mechanics and operational architecture of ${lessonTitle}. Pay strict attention to system invariants, thread boundaries, and state consistency.`;
+        }
+        if (drawerConcept) drawerConcept.innerText = conceptVal;
+
+        // Practical real-world example
+        let exampleVal = slide.real_world_example || slide.industry_context || slide.use_case || '';
+        if (!exampleVal) {
+            exampleVal = `Enterprise Infrastructure: Scalable production environments (such as Stripe, Netflix, and Amazon AWS) implement these exact contracts to enforce fault isolation and sub-millisecond p99 latency guarantees.`;
+        }
+        if (drawerExample) drawerExample.innerText = exampleVal;
+
+        // Key takeaway
+        let takeawayVal = slide.key_takeaway || slide.teacher_core_rule || slide.takeaway || '';
+        if (!takeawayVal) {
+            takeawayVal = `Enforce explicit invariants and defensive validation: verify boundaries before committing state changes.`;
+        }
+        if (drawerTakeaway) drawerTakeaway.innerText = takeawayVal;
+
+        // Hidden card elements (for DOM query compatibility)
+        const textExpNum = document.getElementById('textExpSlideNum');
+        const textExpTitle = document.getElementById('textExpSlideTitle');
+        const textExpConcept = document.getElementById('textExpConcept');
+        const textExpExample = document.getElementById('textExpExample');
+        const textExpTakeaway = document.getElementById('textExpTakeaway');
+        if (textExpNum) textExpNum.innerText = idx + 1;
+        if (textExpTitle) textExpTitle.innerText = titleText;
+        if (textExpConcept) textExpConcept.innerText = conceptVal;
+        if (textExpExample) textExpExample.innerText = exampleVal;
+        if (textExpTakeaway) textExpTakeaway.innerText = takeawayVal;
+    };
+
+    // Initial drawer content synchronization
+    window.updateExplanationContent(0);
+});
+</script>
+{% endblock content %}

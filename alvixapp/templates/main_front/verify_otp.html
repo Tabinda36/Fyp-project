@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALVIX - Verify OTP</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: #0f172a; padding: 20px; }
+    .card { width: 100%; max-width: 400px; background: #ffffff; border: 2px solid #d4af37; border-radius: 24px; padding: 35px; color: #064e3b; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+    h2 { font-size: 22px; margin-bottom: 8px; color: #064e3b; }
+    p { font-size: 13px; color: #047857; margin-bottom: 20px; }
+    input { width: 100%; padding: 14px; text-align: center; font-size: 20px; letter-spacing: 4px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 15px; outline: none; color: #064e3b; background: #f8fafc; }
+    input:focus { border-color: #d4af37; background: #ffffff; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); }
+    button { width: 100%; padding: 13px; background: linear-gradient(135deg, #064e3b, #047857); color: #fff; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+    button:hover { background: linear-gradient(135deg, #047857, #065f46); }
+    .error { margin-top: 15px; color: #991b1b; font-size: 12px; background: #fef2f2; border: 1px solid #fca5a5; padding: 10px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h2>Email Verification</h2>
+    <p>Enter the 6-digit verification code sent to your email address.</p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="otp_code" placeholder="------" maxlength="6" required autofocus>
+        <button type="submit">Verify</button>
+    </form>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+</div>
+</body>
+</html>

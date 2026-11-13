@@ -1,0 +1,184 @@
+{% extends "admin_db/admindashboard.html" %}
+{% load static %}
+
+{% block admin_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+body {
+    background: #f8fafc;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+}
+
+.content-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.form-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.form-label {
+    font-weight: 700;
+    color: #064e3b;
+    font-size: 14px;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 16px;
+    border: 1.5px solid #d4af37;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.95rem;
+}
+
+.form-control:focus {
+    border-color: #064e3b;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+.tier-preview-box {
+    background: #f8fafc;
+    border: 1.5px solid rgba(212, 175, 55, 0.5);
+    border-radius: 12px;
+    padding: 14px 18px;
+}
+
+.tier-pill {
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.btn-submit-green {
+    background: #064e3b;
+    color: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 800;
+    font-size: 15px;
+    box-shadow: 0 4px 14px rgba(6, 78, 59, 0.2);
+    transition: all 0.25s ease;
+}
+
+.btn-submit-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="content-wrapper">
+
+        <!-- Top Breadcrumb & Heading -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a href="{% url 'courses_info' %}" class="text-decoration-none small fw-bold text-success mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left"></i> Back to Courses
+                </a>
+                <h3 class="fw-bold mb-0" style="color: #064e3b;">Add Master Course</h3>
+            </div>
+            <span class="badge" style="background: #064e3b; color: #d4af37; border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 20px; font-weight: 700;">
+                ✨ Auto 3-Tier Generation
+            </span>
+        </div>
+
+        <!-- Add Course Form Card -->
+        <div class="form-card p-4 p-md-5">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row g-4">
+                    <!-- Course Title -->
+                    <div class="col-md-8">
+                        <label for="course_title" class="form-label">Course Title / Master Topic</label>
+                        <input type="text" class="form-control" id="course_title" name="title" placeholder="e.g., Python Programming & Software Engineering" required>
+                        <div class="form-text small text-muted">
+                            Entering a master title will automatically generate the 3 university benchmark tiers in the database.
+                        </div>
+                    </div>
+
+                    <!-- Course Cover Image / Thumbnail -->
+                    <div class="col-md-4">
+                        <label for="course_image" class="form-label">Course Cover Thumbnail</label>
+                        <input type="file" class="form-control" id="course_image" name="image" accept="image/*">
+                        <div class="form-text small text-muted">Recommended: 16:9 banner image.</div>
+                    </div>
+
+                    <!-- Short Description -->
+                    <div class="col-12">
+                        <label for="course_description" class="form-label">Master Course Description & Scope</label>
+                        <textarea class="form-control" id="course_description" name="description" rows="4" placeholder="Describe the domain scope, foundational objectives, and production application goals of this course." required></textarea>
+                    </div>
+
+                    <!-- Automatic University Tiers Preview Box -->
+                    <div class="col-12">
+                        <div class="p-3 rounded-3" style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid #d4af37;">
+                            <h6 class="fw-bold mb-2" style="color: #064e3b;">
+                                <i class="bi bi-mortarboard-fill text-warning me-1"></i>
+                                Automatic University Benchmark Generation:
+                            </h6>
+                            <p class="small text-muted mb-3">
+                                When you click <strong>"Publish Course"</strong>, ALVIX will automatically construct 3 distinct tier cards and pre-generate their complete university canonical curricula, lab challenges, and diagnostic quizzes directly in the database:
+                            </p>
+
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="tier-preview-box h-100">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="fw-bold" style="color: #A51C30;">Beginner Level</span>
+                                            <span class="badge bg-danger-subtle text-danger small">Tier 1</span>
+                                        </div>
+                                        <div class="small fw-semibold text-dark">Harvard University / CS50 Philosophy</div>
+                                        <div class="text-muted" style="font-size: 0.78rem;">Computational thinking, algorithmic intuition & clean architecture.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="tier-preview-box h-100">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="fw-bold" style="color: #0284c7;">Intermediate Level</span>
+                                            <span class="badge bg-info-subtle text-info small">Tier 2</span>
+                                        </div>
+                                        <div class="small fw-semibold text-dark">MIT / Data Structures & Logic</div>
+                                        <div class="text-muted" style="font-size: 0.78rem;">Abstract data types, asymptotic efficiency & algorithmic design.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="tier-preview-box h-100">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="fw-bold" style="color: #8C1515;">Advanced Level</span>
+                                            <span class="badge bg-warning-subtle text-warning small">Tier 3</span>
+                                        </div>
+                                        <div class="small fw-semibold text-dark">Stanford & CMU / Systems & AI</div>
+                                        <div class="text-muted" style="font-size: 0.78rem;">Distributed systems, asynchronous concurrency & production AI integration.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Action Buttons -->
+                    <div class="col-12 d-flex justify-content-end align-items-center gap-3 mt-4">
+                        <a href="{% url 'courses_info' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 600;">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-submit-green">
+                            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Save & Generate University Tiers
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

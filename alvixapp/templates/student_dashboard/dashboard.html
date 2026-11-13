@@ -1,0 +1,687 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ALVIX Student Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background: #f8faf9;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    position:relative;
+    color: #1B5E20;
+}
+
+/* ALVIX Watermark Background */
+body::before{
+    content:"ALVIX";
+    position:fixed;
+    top:50%;
+    left:55%;
+    transform:translate(-50%,-50%);
+    font-size:200px;
+    font-weight:900;
+    color:#1B5E20;
+    opacity:0.03;
+    z-index:-1;
+    letter-spacing:15px;
+    pointer-events:none;
+}
+
+/* Logo Styling */
+.logo {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo-circle {
+    width: 95px;
+    height: 95px;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #d4af37;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    transition: transform 0.3s ease;
+}
+
+.logo-circle:hover {
+    transform: scale(1.05);
+}
+
+.logo-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Decorate Sidebar with Golden Right Border */
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:260px;
+    height:100vh;
+    background: #ffffff;
+    color:#1B5E20;
+    padding:25px 18px;
+    transition:.3s ease;
+    z-index:1000;
+    border-right: 2px solid #d4af37;
+    box-shadow: 4px 0 20px rgba(212, 175, 55, 0.15);
+    overflow-y: auto;
+}
+
+/* Decorate Sidebar Anchor Tags (Links) */
+.sidebar a{
+    display:flex;
+    align-items:center;
+    color:#1B5E20;
+    text-decoration:none;
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight:600;
+    font-size:14px;
+    background: #ffffff;
+    border: 1.5px solid #d4af37;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.1);
+}
+
+.sidebar a:hover{
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(27, 94, 32, 0.08));
+    border-color: #b89628;
+    color: #0d3810;
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.sidebar a i{
+    margin-right:12px;
+    font-size: 18px;
+    color: #1B5E20;
+    transition: transform 0.3s ease;
+}
+
+.sidebar a:hover i {
+    transform: scale(1.15);
+}
+
+/* Main Content Area */
+.main-content{
+    margin-left:260px;
+    padding:30px;
+}
+
+/* Mobile Button */
+.menu-btn{
+    display:none;
+}
+
+/* Decorate Topbar */
+.topbar{
+    background:#ffffff;
+    padding:20px 25px;
+    border-radius:16px;
+    border-left:6px solid #2E7D32;
+    border-top: 1px solid rgba(212, 175, 55, 0.4);
+    border-right: 1px solid rgba(212, 175, 55, 0.4);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow:0 4px 15px rgba(0,0,0,0.04), 0 0 10px rgba(212, 175, 55, 0.08);
+    margin-bottom:25px;
+}
+
+.topbar h4{
+    margin-bottom:2px;
+    color:#1B5E20;
+    font-weight: 700;
+}
+
+/* Small Profile Image Styling */
+.profile-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d4af37;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+/* System Live Status Badge Styling */
+.status-indicator-card {
+    border: 1.5px solid #d4af37;
+    border-radius: 20px;
+    padding: 6px 16px;
+    background: #fdfbf7;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background-color: #2e7d32;
+    box-shadow: 0 0 8px #2e7d32;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
+    box-shadow: 0 0 8px #dc3545;
+}
+
+/* Decorate Dashboard Cards */
+.dashboard-card{
+    background:#ffffff;
+    padding:22px;
+    border-radius:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
+    transition: all .3s ease;
+    height:100%;
+    border: 1.5px solid rgba(212, 175, 55, 0.35);
+}
+
+.dashboard-card:hover{
+    transform:translateY(-5px);
+    border-color: #d4af37;
+    box-shadow:0 10px 25px rgba(212, 175, 55, 0.2);
+}
+
+.card-title-custom{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:10px;
+    color:#1B5E20;
+}
+
+/* Course Image */
+.course-image{
+    width:100%;
+    height:165px;
+    object-fit:cover;
+    border-radius:12px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.course-name{
+    font-weight:700;
+    color:#1B5E20;
+    margin-top:15px;
+}
+
+/* Buttons Styling */
+.green-btn{
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color:white !important;
+    padding:10px 22px;
+    border: 1px solid #d4af37;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s ease;
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+}
+
+.green-btn:hover{
+    background: linear-gradient(135deg, #1B5E20, #0d3810);
+    transform:translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+/* Responsive Styles */
+@media(max-width:768px){
+    .sidebar{
+        left:-260px;
+    }
+    .sidebar.active{
+        left:0;
+    }
+    .main-content{
+        margin-left:0;
+        padding: 15px;
+    }
+    .menu-btn{
+        display:inline-block;
+        margin-bottom:15px;
+        background:#1B5E20;
+        border: 1px solid #d4af37;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 14px;
+    }
+}
+
+/* Normal Light Theme (Default) */
+body {
+    background-color: #ffffff;
+    color: #064e3b;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode {
+    background-color: #042f2e !important;
+    color: #ecfdf5 !important;
+}
+
+body.dark-mode .dashboard-card,
+body.dark-mode .topbar,
+body.dark-mode .sidebar {
+    background-color: #064e3b !important;
+    color: #ffffff !important;
+    border-color: #d4af37 !important;
+}
+
+body.dark-mode .sidebar a {
+    background-color: #064e3b !important;
+    color: #ecfdf5 !important;
+    border-color: #d4af37 !important;
+}
+
+body.dark-mode .sidebar a i {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode .course-name, body.dark-mode .card-title-custom {
+    color: #fbbf24 !important;
+}
+</style>
+</head>
+<body class="{% if request.user.settings.theme == 'Dark' %}dark-mode{% endif %}">
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="logo">
+        <div class="logo-circle">
+            <img src="{% static 'images/LOGO.alvix.png' %}" alt="ALVIX Logo">
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <a href="{% url 'dashboard' %}" class="menu-item {% if request.resolver_match.url_name == 'student_dashboard' or request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-house-door me-2"></i> Dashboard
+    </a>
+    
+    <!-- Profile -->
+    <a href="{% url 'profile' %}" class="menu-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <i class="bi bi-person me-2"></i> Profile
+    </a>
+    
+    <!-- My Courses -->
+    <a href="{% url 'mycourse' %}" class="menu-item {% if request.resolver_match.url_name == 'mycourse' or request.resolver_match.url_name == 'course_content' or request.resolver_match.url_name == 'course_content_view' %}active{% endif %}">
+        <i class="bi bi-book me-2"></i> My Courses
+    </a>
+    
+    <!-- Notifications -->
+    <a href="{% url 'notifications' %}" class="menu-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+        <i class="bi bi-bell me-2"></i> Notifications
+    </a>
+    
+    <!-- Reports -->
+    <a href="{% url 'reports' %}" class="menu-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+        <i class="bi bi-flag me-2"></i> Reports
+    </a>
+    
+    <!-- Performance -->
+    <a href="{% url 'performance' %}" class="menu-item {% if request.resolver_match.url_name == 'performance' %}active{% endif %}">
+        <i class="bi bi-graph-up me-2"></i> Performance
+    </a>
+    
+    <!-- Settings -->
+    <a href="{% url 'settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+        <i class="bi bi-gear me-2"></i> Settings
+    </a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <button class="btn menu-btn" onclick="toggleMenu()">
+        <i class="bi bi-list"></i>
+    </button>
+    {% block content %}
+    <!-- Welcome Section Topbar with Status Indicator -->
+    <div class="topbar">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 24 24' fill='%231B5E20'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E{% endif %}" class="profile-img" alt="Avatar">
+                <div>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <h4 class="mb-0 fw-bold">{% if request.user.profile.full_name %}{{ request.user.profile.full_name }}{% else %}{{ request.user.username }}{% endif %}</h4>
+                        {% if request.user.profile.student_id %}
+                            <span class="badge d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.78rem; font-weight: 800; border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35); letter-spacing: 0.5px;">
+                                <i class="bi bi-person-badge-fill"></i> ID: {{ request.user.profile.student_id }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-0 text-muted mt-1" style="font-size: 0.85rem;">
+                        <i class="bi bi-envelope me-1"></i>{{ request.user.email }}
+                        {% if request.user.profile.goal %}
+                            <span class="ms-2 text-success fw-semibold">| <i class="bi bi-bullseye me-1"></i>Goal: {{ request.user.profile.goal }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="status-indicator-card">
+                <span class="status-dot online"></span>
+                <span class="fw-bold" style="color: #1B5E20; font-size: 0.85rem;">Pre-Generated DB Curricula: Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- COURSE CATALOG ACCESS -->
+    <div class="text-end mb-4">
+        <a href="{% url 'generate_course' %}" class="btn green-btn text-decoration-none d-inline-block">
+            <i class="bi bi-mortarboard-fill me-1" style="color: #d4af37;"></i> Browse University Tiers
+        </a>
+    </div>
+
+    <!-- Main Dashboard Layout -->
+    <div class="row g-4 mb-4">
+        <!-- LEFT COLUMN: Generated Courses -->
+        <div class="col-lg-7">
+            <div class="row g-3">
+                {% if generated_courses %}
+                    {% for course in generated_courses %}
+                        <div class="col-12 col-md-6">
+                            <div class="dashboard-card course-card h-100 d-flex flex-column justify-content-between p-4">
+                                <div>
+                                    <div class="course-image-container mb-3 overflow-hidden rounded-3 position-relative" style="height: 140px; background: #1B5E20; border: 1px solid rgba(212, 175, 55, 0.4);">
+                                        {% if course.image %}
+                                            <img src="{{ course.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ course.admin_course.title }}">
+                                        {% elif course.admin_course.image %}
+                                            <img src="{{ course.admin_course.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ course.admin_course.title }}">
+                                        {% else %}
+                                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white p-3 text-center" style="background: linear-gradient(135deg, #1B5E20 0%, #0d3813 100%);">
+                                                <i class="bi bi-journal-code display-6 mb-1" style="color: #d4af37;"></i>
+                                                <span class="fw-bold text-truncate w-100" style="max-width: 90%;">{{ course.admin_course.title }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
+                                        <h5 class="course-name mb-0 text-success fw-bold text-truncate" style="max-width: 70%;">{{ course.admin_course.title }}</h5>
+                                        {% if course.admin_course.course_code %}
+                                        <span class="badge" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.72rem; font-weight: 800; border-radius: 12px; padding: 3px 8px;">
+                                            {{ course.admin_course.course_code }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted small mb-3">
+                                        <i class="bi bi-mortarboard text-success me-1"></i>Tier: <strong>{{ course.course_level.benchmark|default:"University Benchmark"|truncatechars:28 }}</strong>
+                                        <br>
+                                        <i class="bi bi-clock me-1"></i>Pace: <strong>{{ course.pace|default:"Standard" }}</strong>
+                                        &bull; <i class="bi bi-play-circle text-warning me-1"></i>{{ course.daily_lessons.count }} Lectures
+                                    </p>
+                                </div>
+                                <div class="pt-3 border-top mt-auto d-flex gap-2">
+                                    <a href="{% url 'course_content' %}?course_id={{ course.id }}" class="btn green-btn w-50 text-decoration-none text-center btn-sm py-2">
+                                        <i class="bi bi-book-half me-1"></i> Content
+                                    </a>
+                                    {% with d_first=course.daily_lessons.first %}
+                                    {% if d_first %}
+                                    <a href="{% url 'daily_lesson' d_first.id %}" class="btn btn-outline-success w-50 text-decoration-none text-center btn-sm py-2 fw-semibold">
+                                        <i class="bi bi-play-circle-fill me-1 text-warning"></i> Lecture
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'daily_lesson' %}?course_id={{ course.id }}" class="btn btn-outline-success w-50 text-decoration-none text-center btn-sm py-2 fw-semibold">
+                                        <i class="bi bi-play-circle-fill me-1 text-warning"></i> Lecture
+                                    </a>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        {% if suggested_course %}
+                        <div class="alert p-4 mb-3" style="border-radius: 16px; background: #ffffff; border: 2px solid #d4af37; color: #064e3b; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.18);">
+                            {% if suggested_course.image %}
+                            <div class="mb-3 rounded-3 overflow-hidden shadow-sm" style="height: 150px; border: 1.5px solid #d4af37;">
+                                <img src="{{ suggested_course.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ suggested_course.title }}">
+                            </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <span class="badge" style="background: #064e3b; color: #d4af37; border: 1px solid #d4af37; font-size: 0.78rem;">
+                                    <i class="bi bi-star-fill text-warning me-1"></i> Suggested From Your Assessment
+                                </span>
+                                {% if suggested_course.course_code %}
+                                <span class="badge" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.75rem; font-weight: 800; border-radius: 12px; padding: 4px 10px;">
+                                    ID: {{ suggested_course.course_code }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <h5 class="fw-bold mb-1" style="color: #064e3b;">{{ suggested_course.title }}</h5>
+                            <p class="small text-muted mb-3">{{ suggested_course.description|default:"Curated from database based on your learning goals."|truncatewords:25 }}</p>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <form method="POST" action="{% url 'suggested_courses' %}" class="d-inline-block">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn green-btn btn-sm px-3 py-2">
+                                        <i class="bi bi-stars me-1 text-warning"></i> Generate Course with AI
+                                    </button>
+                                </form>
+                                <a href="{% url 'suggested_courses' %}" class="btn btn-outline-success btn-sm px-3 py-2 text-decoration-none">
+                                    View Full Details
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert text-center py-5" style="border-radius: 16px; background: #ffffff; border: 1.5px dashed #d4af37; color: #1B5E20; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);">
+                            <i class="bi bi-book-half fs-1 d-block mb-2" style="color: #d4af37;"></i>
+                            <span class="fs-6">You haven't generated any courses yet. Click <strong>Generate Course</strong> above to get started!</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Performance & AI Remarks -->
+        <div class="col-lg-5">
+            <div class="dashboard-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="card-title-custom mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Performance</h5>
+                        {% if grade %}
+                            <span class="badge px-3 py-2 rounded-pill fw-bold" style="background-color: #d4af37 !important; color: #ffffff !important;">
+                                Grade: {{ grade }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small">
+                                No Grade Yet
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between small text-muted mb-2">
+                            <span>Overall Completion</span>
+                            <span class="fw-bold text-success">{{ overall_progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 10px; background-color: #e9ecef;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ overall_progress }}%; border-radius: 10px;" aria-valuenow="{{ overall_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 mt-3" style="background-color: #fdfbf7; border: 1.5px dashed #d4af37;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-robot text-success fs-5"></i>
+                            <strong class="text-success small">AI Performance Remarks</strong>
+                        </div>
+                        {% if ai_remarks %}
+                            <p class="text-muted small mb-0 lh-sm">"{{ ai_remarks }}"</p>
+                        {% else %}
+                            <p class="text-muted small mb-0 lh-sm">No AI remarks generated yet. Complete daily lessons and quizzes to generate evaluation.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Certificate Section inside Student Dashboard / Course Page -->
+                    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="color: #065f46; font-size: 18px; font-weight: bold; margin: 0;">Course Completion Certificate 🎓</h3>
+                            <span style="background: {% if certificate_unlocked %}#d1fae5{% else %}#fef3c7{% endif %}; color: {% if certificate_unlocked %}#065f46{% else %}#92400e{% endif %}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                {% if certificate_unlocked %}Unlocked 🎉{% else %}Locked 🔒{% endif %}
+                            </span>
+                        </div>
+
+                        {% if certificate_unlocked %}
+                            <p style="color: #374151; font-size: 14px; margin-bottom: 15px;">Congratulations! You have successfully met all course requirements. You can now view and download your official certificate.</p>
+                            <a href="{% url 'certificate' active_course.id %}" target="_blank" style="display: block; text-align: center; background: #065f46; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">View & Download Certificate 🏆</a>
+                        {% else %}
+                            <p style="color: #4b5563; font-size: 13px; margin-bottom: 10px;">To unlock your certificate, please fulfill the following academic requirements:</p>
+                            <ul style="color: #6b7280; font-size: 13px; padding-left: 20px; margin: 0 0 15px 0; text-align: left;">
+                                <li>Minimum 60% Watch Time</li>
+                                <li>All Assignments Submitted</li>
+                                <li>All Quizzes Attempted</li>
+                                <li>Overall Score Minimum 35%</li>
+                            </ul>
+                            <button disabled style="width: 100%; background: #f3f4f6; color: #9ca3af; border: 1px solid #d1d5db; padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: not-allowed;">Certificate Locked 🔒</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top mt-4 text-end">
+                    <a href="{% url 'performance' %}" class="small text-success text-decoration-none fw-bold">
+                        View Detailed Analytics <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endblock %}
+
+</div>
+
+<!-- Notification Popup Modal -->
+{% if popup_notification %}
+<div class="modal fade" id="notificationPopupModal-{{ popup_notification.id }}" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; border: 2px solid #d4af37 !important; z-index: 1055;">
+            <div class="modal-header bg-white text-dark" style="border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom: 2px solid #d4af37;">
+                <h5 class="modal-title fw-bold" id="notificationModalLabel" style="color: #064e3b;">
+                    <i class="bi bi-bell-fill me-2" style="color: #d4af37;"></i> New Announcement
+                </h5>
+            </div>
+            <div class="modal-body p-4" style="background-color: #fdfbf7;">
+                <div class="mb-3">
+                    <span class="badge px-3 py-2 rounded-pill" style="background-color: #064e3b; color: white; border: 1px solid #d4af37;">
+                        {{ popup_notification.get_category_type_display }}
+                    </span>
+                    <small class="text-muted float-end mt-1">
+                        <i class="bi bi-clock me-1"></i> {{ popup_notification.created_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                <h5 class="fw-bold mb-2" style="color: #064e3b;">{{ popup_notification.subject_heading }}</h5>
+                <p class="text-secondary mb-0" style="line-height: 1.6;">{{ popup_notification.notification_body }}</p>
+            </div>
+            <div class="modal-footer bg-white" style="border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; border-top: 1px solid #eee;">
+                <button type="button" class="btn px-4 fw-bold text-white" style="background: linear-gradient(135deg, #064e3b, #047857); border-radius: 10px;" onclick="acknowledgeNotification('{{ popup_notification.id }}')">
+                    OK, Got It
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const notifId = "{{ popup_notification.id|default:'' }}";
+    if (notifId) {
+        const modalElement = document.getElementById('notificationPopupModal-' + notifId);
+        if (localStorage.getItem('dismissed_notif_' + notifId) === 'true') {
+            if (modalElement) modalElement.remove();
+        } else {
+            if (modalElement) {
+                const myModal = new bootstrap.Modal(modalElement);
+                myModal.show();
+            }
+        }
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function acknowledgeNotification(id) {
+    localStorage.setItem('dismissed_notif_' + id, 'true');
+
+    const modalElement = document.getElementById('notificationPopupModal-' + id);
+    if (modalElement) {
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+        modalElement.remove();
+    }
+
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+
+    const csrftoken = getCookie('csrftoken');
+    const readUrl = `/notifications/read/${id}/`;
+
+    fetch(readUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+function toggleMenu() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
+}
+</script>
+
+</body>
+</html>

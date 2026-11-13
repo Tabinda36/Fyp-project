@@ -1,0 +1,401 @@
+{% extends 'student_dashboard/dashboard.html' %}
+
+{% block content %}
+<style>
+    .alvix-gold-border { border: 1.5px solid #d4af37 !important; }
+    .alvix-bg-gold { background-color: #fdfbf7 !important; }
+    .alvix-text-dark-green { color: #064e3b !important; }
+    .alvix-btn-gold { background-color: #064e3b; color: #ffffff; border: 1px solid #d4af37; font-weight: 600; }
+    .alvix-btn-gold:hover { background-color: #d4af37; color: #064e3b; }
+    .alvix-header-gold { background: linear-gradient(135deg, #064e3b 0%, #0a3d2e 100%); color: #d4af37; }
+    
+    /* Mid-Screen Center Overlay Notification Cards */
+    #questionNotificationOverlay, #remarksNotificationOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #questionNotificationCard, #remarksNotificationCard {
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0px 15px 30px rgba(0,0,0,0.3);
+        animation: popupScale 0.25s ease-out forwards;
+    }
+
+    @keyframes popupScale {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+<div class="container-fluid px-0">
+        
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-warning">
+        <h3 class="fw-bold alvix-text-dark-green mb-0"><i class="bi bi-journal-code me-2" style="color:#d4af37;"></i>ALVIX AI Assignment Portal</h3>
+        <a href="{% url 'mycourse' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Tracks</a>
+        <span class="badge alvix-header-gold p-2 fs-6">Lesson: {{ lesson.title }}</span>
+    </div>
+
+    <!-- TWO EQUAL-HEIGHT CARDS -->
+    <div class="row g-4 mb-5 align-items-stretch">
+        
+        <!-- CARD 1: Assignment Questions & Submission Status -->
+        <div class="col-lg-6 d-flex">
+            <div class="card shadow-sm alvix-gold-border w-100 flex-fill">
+                <div class="card-header alvix-header-gold fw-bold d-flex justify-content-between align-items-center py-3">
+                    <span><i class="bi bi-file-earmark-text me-2"></i>Assignment Portal</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="badge bg-light text-dark border"><i class="bi bi-calendar-check text-success me-1"></i>Issued: {{ lesson.assignment_issued_at|date:"d M Y, h:i A"|default:"Active upon click" }}</small>
+                        <small class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Due: {{ deadline_date|date:"d M Y, h:i A" }}</small>
+                    </div>
+                </div>
+                <div class="card-body alvix-bg-gold p-4 d-flex flex-column justify-content-between">
+                    
+                    <!-- Pre-saved Assignment Questions: Always visible immediately -->
+                    <div class="p-3 bg-white rounded border alvix-gold-border mb-3" style="max-height: 250px; overflow-y: auto;">
+                        <h6 class="fw-bold alvix-text-dark-green mb-2"><i class="bi bi-journal-code text-warning me-1"></i> Assignment Challenge:</h6>
+                        <div class="small text-muted">{{ assignment_prompt|safe }}</div>
+                    </div>
+
+                    <!-- Structured Track Rubric & Requirements -->
+                    {% if assignment_data %}
+                    <div class="p-3 bg-light rounded border border-warning mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge {% if is_practical %}bg-success{% else %}bg-primary{% endif %} text-uppercase">
+                                <i class="bi {% if is_practical %}bi-code-slash{% else %}bi-book{% endif %} me-1"></i>
+                                {% if is_practical %}Practical Task{% else %}Theory Case Study{% endif %}
+                            </span>
+                            {% if assignment_data.expected_file_type %}
+                            <span class="badge bg-dark text-warning">
+                                <i class="bi bi-file-earmark-code me-1"></i>Expected: {{ assignment_data.expected_file_type }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if assignment_data.requirements_checklist %}
+                        <h6 class="small fw-bold text-dark mb-1"><i class="bi bi-check2-square text-success me-1"></i>Requirements Checklist:</h6>
+                        <ul class="small text-muted mb-2 ps-3">
+                            {% for req in assignment_data.requirements_checklist %}
+                            <li>{{ req }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% elif assignment_data.expected_points %}
+                        <h6 class="small fw-bold text-dark mb-1"><i class="bi bi-list-check text-primary me-1"></i>Key Points to Address:</h6>
+                        <ul class="small text-muted mb-2 ps-3">
+                            {% for pt in assignment_data.expected_points %}
+                            <li>{{ pt }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        {% if assignment_data.rubric %}
+                        <h6 class="small fw-bold text-dark mb-1"><i class="bi bi-award text-warning me-1"></i>Marks Rubric (10 Marks Total):</h6>
+                        <div class="row g-1 small text-muted">
+                            {% for criterion, pts in assignment_data.rubric.items %}
+                            <div class="col-6">
+                                <span class="badge bg-secondary-subtle text-dark border w-100 text-start text-truncate">
+                                    {{ criterion|title }}: <strong>{{ pts }} marks</strong>
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+
+                    {% if latest_submission %}
+                        <div class="alert alert-success border-0 shadow-sm text-center py-3 mb-0">
+                            <i class="bi bi-check-circle-fill text-success fs-3 d-block mb-1"></i>
+                            <h5 class="fw-bold alvix-text-dark-green mb-1">Assignment Submitted!</h5>
+                            <p class="text-muted small mb-0">Submitted on {{ latest_submission.submitted_at|date:"d M Y, h:i A" }}</p>
+                            <small class="text-muted d-block mt-1">Review feedback and marks in the evaluation panel on the right.</small>
+                        </div>
+                    {% elif is_expired %}
+                        <div class="alert alert-warning mb-0 text-center fw-bold py-3">
+                            <i class="bi bi-clock-history me-1 fs-5"></i>Standard Deadline Passed. Submission accepted for late review.
+                        </div>
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'assignment' %}?lesson_id={{ lesson.id }}" class="mt-2">
+                            {% csrf_token %}
+                            <!-- Telemetry inputs for copy/paste & typing pattern detection -->
+                            <input type="hidden" name="paste_count" class="telemetry_paste_count" value="0">
+                            <input type="hidden" name="pasted_chars_total" class="telemetry_pasted_chars" value="0">
+                            <input type="hidden" name="typing_duration_seconds" class="telemetry_typing_duration" value="0">
+                            <input type="hidden" name="keystroke_count" class="telemetry_keystroke_count" value="0">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold small alvix-text-dark-green">Notes / Written Response</label>
+                                <textarea name="student_submission" class="form-control form-control-sm" rows="2" placeholder="Write key logic explanation..."></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-bold small alvix-text-dark-green">Upload File (PDF / Image / Code)</label>
+                                <input type="file" name="file_submission" class="form-control form-control-sm">
+                            </div>
+                            <button type="submit" class="btn alvix-btn-gold w-100 py-2">
+                                <i class="bi bi-cloud-arrow-up me-2"></i> Submit Assignment
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'assignment' %}?lesson_id={{ lesson.id }}">
+                            {% csrf_token %}
+                            <!-- Telemetry inputs for copy/paste & typing pattern detection -->
+                            <input type="hidden" name="paste_count" class="telemetry_paste_count" value="0">
+                            <input type="hidden" name="pasted_chars_total" class="telemetry_pasted_chars" value="0">
+                            <input type="hidden" name="typing_duration_seconds" class="telemetry_typing_duration" value="0">
+                            <input type="hidden" name="keystroke_count" class="telemetry_keystroke_count" value="0">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold small alvix-text-dark-green">Notes / Written Response (Optional)</label>
+                                <textarea name="student_submission" class="form-control form-control-sm" rows="2" placeholder="Write key logic explanation..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small alvix-text-dark-green">Upload File (PDF / Image / Code)</label>
+                                <input type="file" name="file_submission" class="form-control form-control-sm">
+                            </div>
+                            <button type="submit" class="btn alvix-btn-gold w-100 py-2">
+                                <i class="bi bi-cloud-arrow-up me-2"></i> Submit Assignment
+                            </button>
+                        </form>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 2: AI Evaluation & Remarks -->
+        <div class="col-lg-6 d-flex">
+            <div class="card shadow-sm alvix-gold-border w-100 flex-fill">
+                <div class="card-header alvix-header-gold fw-bold d-flex justify-content-between align-items-center py-3">
+                    <span><i class="bi bi-cpu me-2"></i>AI Evaluation & Logic Checker</span>
+                    <span id="aiScoreBadge">
+                        {% if latest_submission %}
+                            <span class="badge bg-warning text-dark fs-6">{{ latest_submission.score|default:0 }} / 5 Marks</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">Pending Review</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="card-body alvix-bg-gold p-4 d-flex flex-column justify-content-between" id="aiCardBody">
+                    {% if latest_submission %}
+                        <div id="aiEvaluationContent">
+                            <div class="mb-3">
+                                <h6 class="fw-bold alvix-text-dark-green mb-2"><i class="bi bi-patch-check-fill text-warning me-2"></i>AI Assessment Remarks:</h6>
+                                <div class="small bg-white p-3 rounded border alvix-gold-border text-dark">
+                                    {{ latest_submission.ai_feedback }}
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+<div class="col-6">
+                                    <div class="p-2 border rounded text-center bg-white alvix-gold-border">
+                                        <small class="d-block text-muted">Integrity & Copy Check</small>
+                                        {% if latest_submission.copy_risk_level == 'High' %}
+                                            <strong class="text-danger"><i class="bi bi-flag-fill me-1"></i> Copy Risk: High (Flagged for Admin Review)</strong>
+                                        {% elif latest_submission.copy_risk_level == 'Medium' %}
+                                            <strong class="text-warning"><i class="bi bi-exclamation-circle me-1"></i> Copy Risk: Medium</strong>
+                                        {% else %}
+                                            <strong class="text-success"><i class="bi bi-shield-check me-1"></i> Copy Risk: Low (Original)</strong>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded text-center bg-white alvix-gold-border">
+                                        <small class="d-block text-muted">Rubric Marks</small>
+                                        <strong class="text-success fs-6"><i class="bi bi-star-fill text-warning me-1"></i> {{ latest_submission.marks|default:latest_submission.score }} / {{ latest_submission.total_marks|default:10 }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted my-auto">
+                            <i class="bi bi-robot fs-1 d-block mb-2 text-warning"></i>
+                            <p class="mb-0">Submit your notes or file to trigger Gemini AI logic analysis.</p>
+                        </div>
+                    {% endif %}
+
+                    <small class="text-muted text-center d-block mt-auto"><i class="bi bi-info-circle me-1"></i> Real-time AI Multimodal Evaluation</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM RECORD TABLE WITH VIEW REMARKS BUTTON -->
+    <div class="card shadow-sm alvix-gold-border">
+        <div class="card-header alvix-header-gold fw-bold py-3">
+            <i class="bi bi-clock-history me-2"></i>Assignment Submissions History & Record
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="alvix-bg-gold">
+                        <tr>
+                            <th class="alvix-text-dark-green">Lesson / Day</th>
+                            <th class="alvix-text-dark-green">Submitted Date & Time</th>
+                            <th class="alvix-text-dark-green">Deadline Date</th>
+                            <th class="alvix-text-dark-green">Assignment Question</th>
+                            <th class="alvix-text-dark-green">Uploaded File</th>
+                            <th class="alvix-text-dark-green">AI Remarks</th>
+                            <th class="alvix-text-dark-green">Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in all_submissions %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-success">Day {{ sub.lesson.day_number }}</span>
+                                <small class="d-block text-muted fw-bold">{{ sub.lesson.title }}</small>
+                            </td>
+    
+                           <!-- Unique Deadline for each Lesson -->
+                            <td>
+                                <small class="fw-semibold text-dark">
+                                    {% if sub.lesson.deadline %}
+                                        {{ sub.lesson.deadline|date:"d M Y, h:i A" }}
+                                    {% else %}
+                                        {{ sub.lesson.created_at|date:"d M Y, h:i A" }}
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>{{ sub.submitted_at|date:"d M Y, h:i A" }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm alvix-btn-gold" onclick="showQuestionCard(`{{ sub.question_prompt|default:assignment_prompt|escapejs }}`)">
+                                    <i class="bi bi-eye me-1"></i> View Question
+                                </button>
+                            </td>
+                            <td>
+                                {% if sub.file_submission %}
+                                    <a href="{{ sub.file_submission.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-file-earmark-image me-1"></i> View Submitted File
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-light text-muted">Text Only</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm alvix-btn-gold" onclick="showRemarksCard(`{{ sub.ai_feedback|default:'No remarks available.'|escapejs }}`)">
+                                    <i class="bi bi-chat-square-text me-1"></i> View Remarks
+                                </button>
+                            </td>
+                            <td>
+                                <span class="badge alvix-header-gold p-2">{{ sub.score }} / 5 Marks</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No submissions record found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MID-SCREEN FLOATING QUESTION NOTIFICATION CARD OVERLAY -->
+<div id="questionNotificationOverlay">
+    <div id="questionNotificationCard" class="card alvix-gold-border rounded-3 overflow-hidden">
+        <div class="card-header alvix-header-gold d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold fs-6"><i class="bi bi-patch-question-fill me-2" style="color:#d4af37;"></i>Assignment Question</span>
+            <button type="button" class="btn-close btn-close-white btn-sm" onclick="closeQuestionCard()"></button>
+        </div>
+        <div class="card-body bg-white p-4">
+            <div id="notificationQuestionBody" class="small text-dark mb-4" style="max-height: 250px; overflow-y: auto;"></div>
+            <button type="button" class="btn alvix-btn-gold w-100 py-2 fw-bold" onclick="closeQuestionCard()">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- MID-SCREEN FLOATING REMARKS NOTIFICATION CARD OVERLAY -->
+<div id="remarksNotificationOverlay">
+    <div id="remarksNotificationCard" class="card alvix-gold-border rounded-3 overflow-hidden">
+        <div class="card-header alvix-header-gold d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold fs-6"><i class="bi bi-chat-square-text-fill me-2" style="color:#d4af37;"></i>AI Assessment Remarks</span>
+            <button type="button" class="btn-close btn-close-white btn-sm" onclick="closeRemarksCard()"></button>
+        </div>
+        <div class="card-body bg-white p-4">
+            <div id="notificationRemarksBody" class="small text-dark mb-4" style="max-height: 250px; overflow-y: auto;"></div>
+            <button type="button" class="btn alvix-btn-gold w-100 py-2 fw-bold" onclick="closeRemarksCard()">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT FUNCTIONS -->
+<script>
+    var popupRemarksTimer = null;
+
+    // Question Popup Functions
+    function showQuestionCard(questionText) {
+        var overlay = document.getElementById('questionNotificationOverlay');
+        var body = document.getElementById('notificationQuestionBody');
+        body.innerHTML = questionText;
+        overlay.style.display = 'flex';
+    }
+
+    function closeQuestionCard() {
+        var overlay = document.getElementById('questionNotificationOverlay');
+        overlay.style.display = 'none';
+    }
+
+    // Popup Remarks Functions with 60-Second Auto Close
+    function showRemarksCard(remarksText) {
+        var overlay = document.getElementById('remarksNotificationOverlay');
+        var body = document.getElementById('notificationRemarksBody');
+        
+        body.innerHTML = remarksText;
+        overlay.style.display = 'flex';
+
+        if (popupRemarksTimer) {
+            clearTimeout(popupRemarksTimer);
+        }
+
+        popupRemarksTimer = setTimeout(function() {
+            closeRemarksCard();
+        }, 60000); // 60 Seconds
+    }
+
+    function closeRemarksCard() {
+        var overlay = document.getElementById('remarksNotificationOverlay');
+        var body = document.getElementById('notificationRemarksBody');
+        
+        overlay.style.display = 'none';
+        body.innerHTML = ''; 
+
+        if (popupRemarksTimer) {
+            clearTimeout(popupRemarksTimer);
+        }
+    }
+
+    // TOP CARD COMPLETE CLEAR / RESET AFTER 60 SECONDS ON PAGE LOAD
+    document.addEventListener("DOMContentLoaded", function () {
+        var evaluationContent = document.getElementById('aiEvaluationContent');
+        var scoreBadge = document.getElementById('aiScoreBadge');
+
+        if (evaluationContent) {
+            setTimeout(function () {
+                // 1. Reset Marks Badge in Header
+                if (scoreBadge) {
+                    scoreBadge.innerHTML = '<span class="badge bg-secondary fs-6">Pending Review</span>';
+                }
+
+                // 2. Replace Evaluation Details (Remarks + Copy-Paste + Logic Boxes) with Default Placeholder
+                evaluationContent.innerHTML = `
+                    <div class="text-center py-5 text-muted my-auto">
+                        <i class="bi bi-robot fs-1 d-block mb-2 text-warning"></i>
+                        <p class="mb-0">Evaluation timer ended. View archived remarks in History Record below.</p>
+                    </div>
+                `;
+            }, 60000); // 60000 ms = 60 Seconds
+        }
+    });
+</script>
+{% endblock content %}

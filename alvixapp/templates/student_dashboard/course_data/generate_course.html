@@ -1,0 +1,222 @@
+{% extends 'student_dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-content py-2 px-3 w-100">
+    <div class="container-fluid px-0 mx-auto" style="max-width: 1100px;">
+        
+        <!-- Page Title Banner -->
+        <div class="card p-3 mb-4 shadow-sm" style="border-radius: 12px; border: 1.5px solid #D4AF37; border-left: 6px solid #01411C !important; background: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold mb-1" style="color: #01411C;">
+                        <i class="bi bi-mortarboard-fill me-2" style="color: #d4af37;"></i>Academic Course Catalog & Instant Enrollment
+                    </h4>
+                    <p class="text-muted mb-0 small">
+                        Choose your university-benchmarked curriculum. Pre-generated and loaded from database in milliseconds &mdash; zero wait time!
+                    </p>
+                </div>
+                <span class="badge" style="background: #01411C; color: #D4AF37; border: 1px solid #D4AF37; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
+                    ⚡ Instant DB Fetch
+                </span>
+            </div>
+        </div>
+
+        <!-- 1. RECOMMENDED COURSES & UNIVERSITY BENCHMARK TIERS -->
+        {% if suggested_courses %}
+            <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold text-uppercase mb-0 tracking-wide small" style="color: #01411C;">
+                        <i class="bi bi-stars text-warning me-1"></i> Recommended Curricula Based On Your Assessment
+                    </h6>
+                    {% if assessment %}
+                    <span class="small text-muted">
+                        Goal: <strong>{{ assessment.learning_goal|default:"Skill Improvement" }}</strong>
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% for course in suggested_courses %}
+                <div class="card p-3 p-md-4 shadow-sm mb-4" style="border: 2px solid #D4AF37; border-radius: 14px; background: #ffffff;">
+                    <!-- Course Master Info -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pb-3 mb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.3) !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if course.image %}
+                            <img src="{{ course.image.url }}" class="rounded-3 shadow-sm object-fit-cover" style="width: 70px; height: 70px; border: 1.5px solid #D4AF37;" alt="{{ course.title }}">
+                            {% else %}
+                            <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: #01411C; color: #D4AF37; border: 1.5px solid #D4AF37;">
+                                <i class="bi bi-journal-code fs-3"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="fw-bold mb-0 text-dark">{{ course.title }}</h5>
+                                    {% if course.course_code %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.75rem; font-weight: 800; border-radius: 10px; padding: 3px 8px;">
+                                        {{ course.course_code }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-muted small mb-0 mt-1" style="max-width: 750px;">{{ course.description|truncatewords:20 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 University Benchmark Tiers Grid for this course -->
+                    <div class="row g-3">
+                        {% for lvl in course.course_levels.all %}
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1.5px solid #D4AF37; background: #fafaf9;">
+                                <div>
+                                    <!-- University Header -->
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="badge" style="background: #01411C; color: #D4AF37; font-weight: 700; font-size: 0.75rem;">
+                                            {{ lvl.level }} Level
+                                        </span>
+                                        <span class="small fw-semibold text-muted">7-Day Plan</span>
+                                    </div>
+
+                                    <h6 class="fw-bold mb-1" style="color: #01411C;">{{ lvl.title }}</h6>
+                                    
+                                    <div class="p-2 rounded-2 mb-2" style="background: rgba(212, 175, 55, 0.12); font-size: 0.78rem;">
+                                        <strong>🏛️ {{ lvl.benchmark }}</strong>
+                                    </div>
+
+                                    <p class="text-muted small mb-3" style="font-size: 0.8rem; line-height: 1.5;">
+                                        {{ lvl.description|truncatewords:14 }}
+                                    </p>
+                                </div>
+
+                                <!-- Instant Fetch Action Button -->
+                                <a href="{% url 'enroll_level' lvl.slug %}" class="btn w-100 py-2 fw-bold text-white small shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #01411C, #047857); border: 1px solid #D4AF37; border-radius: 8px; text-decoration: none;">
+                                    <i class="bi bi-lightning-charge-fill text-warning"></i>
+                                    <span>Select & Start Learning</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-2 text-muted small">
+                            Loading university tiers for this course...
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center my-4 fw-bold small position-relative">
+                <span class="bg-light px-3 py-1 position-relative z-1 border rounded-pill shadow-xs" style="font-size: 11px; border-color: #D4AF37 !important; color: #01411C;">─── OR CHOOSE FROM COMPLETE CATALOG ───</span>
+            </div>
+        {% endif %}
+
+        <!-- 2. QUICK ENROLLMENT & TIER SELECTOR BOX -->
+        <div class="card p-3 p-md-4 shadow-sm mb-4" style="border: 2px solid #D4AF37; border-radius: 14px; background: #ffffff;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-sliders text-warning fs-5"></i>
+                <h5 class="fw-bold mb-0" style="color: #01411C;">Custom Academic Path Selector</h5>
+            </div>
+            
+            <form method="POST" action="{% url 'generate_course' %}">
+                {% csrf_token %}
+
+                <!-- 1. Select Course -->
+                <div class="mb-3">
+                    <label for="course_topic" class="form-label fw-bold small mb-1" style="color: #01411C;">1. Select Master Course</label>
+                    <select name="course_topic" id="course_topic" class="form-select custom-select-style py-2" required>
+                        <option value="">-- Choose Course --</option>
+                        {% for course in available_courses %}
+                            <option value="{{ course.id }}">{% if course.course_code %}[{{ course.course_code }}] {% endif %}{{ course.title }}</option>
+                        {% empty %}
+                            <option value="" disabled>No courses available.</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 2. Select Academic Benchmark Tier -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small mb-1" style="color: #01411C;">2. Select University Benchmark Tier</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="level" id="level_beginner" value="Beginner" checked>
+                            <label class="btn btn-outline-custom w-100 p-2 text-start small" for="level_beginner">
+                                <div class="fw-bold text-danger">Tier 1: Beginner</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">🏛️ Harvard CS50 Philosophy</div>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="level" id="level_intermediate" value="Intermediate">
+                            <label class="btn btn-outline-custom w-100 p-2 text-start small" for="level_intermediate">
+                                <div class="fw-bold text-info">Tier 2: Intermediate</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">🏛️ MIT Data Structures & Logic</div>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="level" id="level_advanced" value="Advanced">
+                            <label class="btn btn-outline-custom w-100 p-2 text-start small" for="level_advanced">
+                                <div class="fw-bold text-warning">Tier 3: Advanced</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">🏛️ Stanford & CMU Systems & AI</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Pace Options -->
+                <div class="mb-3">
+                    <label for="learning_pace" class="form-label fw-bold small mb-1" style="color: #01411C;">3. Weekly Commitment (Pace)</label>
+                    <select class="form-select custom-select-style py-2" id="learning_pace" name="pace">
+                        <option value="Standard">Standard (3-5 hours/week)</option>
+                        <option value="Intense">Intense/Crash Course (10+ hours/week)</option>
+                    </select>
+                </div>
+
+                <!-- 4. Goal -->
+                <div class="mb-3">
+                    <label for="learning_objective" class="form-label fw-bold small mb-1" style="color: #01411C;">4. Primary Goal / Objective</label>
+                    <textarea class="form-control custom-select-style" id="learning_objective" name="objective" rows="2" placeholder="e.g., Master computational algorithms, prepare for interviews, or build scalable systems...">{% if assessment %}{{ assessment.learning_goal }}{% endif %}</textarea>
+                </div>
+
+                <!-- Instant Submit Button -->
+                <div class="mt-3">
+                    <button type="submit" class="btn w-100 py-2 fw-bold text-white shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #01411C, #047857); border-radius: 8px; border: 1.5px solid #D4AF37;">
+                        <i class="bi bi-lightning-charge-fill text-warning"></i>
+                        <span>Start Learning Instantly (Database Fetch)</span>
+                    </button>
+                    <div class="text-center mt-2">
+                        <span class="text-muted small" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-check text-success me-1"></i>Curriculum, assignments, and quizzes load instantaneously from pre-generated records.
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .custom-select-style:focus, .form-control:focus, .form-select:focus {
+        border-color: #D4AF37 !important;
+        box-shadow: 0 0 0 0.15rem rgba(212, 175, 55, 0.25) !important;
+    }
+    .custom-select-style {
+        border-color: #D4AF37;
+        border-radius: 8px;
+    }
+    .btn-outline-custom {
+        color: #01411C;
+        border: 1.5px solid #D4AF37;
+        background-color: #fff;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    .btn-outline-custom:hover, .btn-check:checked + .btn-outline-custom {
+        background-color: #01411C !important;
+        border-color: #D4AF37 !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(1, 65, 28, 0.2);
+    }
+    .btn-check:checked + .btn-outline-custom .text-muted {
+        color: #cbd5e1 !important;
+    }
+</style>
+{% endblock content %}

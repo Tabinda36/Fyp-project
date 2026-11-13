@@ -1,0 +1,563 @@
+{% extends 'admin_db/admindashboard.html' %}
+
+{% block admin_content %}
+<div class="container-fluid px-4 py-3" style="max-width: 100% !important;">
+    
+    <!-- Header with Back Button -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-4" style="border-color: #D4AF37 !important;">
+        <div>
+            <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px; color: #8C7320 !important;">Course Management / Details</span>
+            <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                <h2 class="fw-bold mb-0" style="color: #01411C;"><i class="bi bi-journal-check me-2 text-success"></i>{{ course.title }}</h2>
+                {% if course.course_code %}
+                    <span class="badge d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.85rem; font-weight: 800; border-radius: 20px; padding: 6px 14px; box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);">
+                        <i class="bi bi-tag-fill"></i> ID: {{ course.course_code }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'courses_info' %}" class="btn btn-outline-success btn-sm px-4 rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Course List
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="row g-4">
+        <!-- Left Side: Course Overview, AI Syllabus & Enrolled Students Table -->
+        <div class="col-lg-8">
+            
+            <!-- Course Overview Card -->
+            <div class="dashboard-card p-4 p-md-4 mb-4 shadow-sm" style="background: white; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25);">
+                {% if course.image %}
+                    <div class="mb-4 overflow-hidden rounded-4 shadow-sm" style="max-height: 280px; border: 1.5px solid #d4af37;">
+                        <img src="{{ course.image.url }}" class="w-100 object-fit-cover" alt="{{ course.title }}" style="max-height: 280px;">
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <span class="badge px-3 py-2 fs-6 fw-bold" style="background-color: rgba(1, 65, 28, 0.08); color: #01411C; border-radius: 8px;">
+                        <i class="bi bi-cpu-fill me-1 text-success"></i> AI-Powered Curriculum
+                    </span>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-warning text-dark px-3 py-2 fw-bold">Level: {{ course.level|default:"All Levels" }}</span>
+                        <span class="badge bg-success px-3 py-2 fw-bold">Status: Active</span>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold text-dark mb-2">Course Description</h4>
+                <p class="text-secondary lh-lg mb-4" style="font-size: 1.02rem;">
+                    {{ course.description }}
+                </p>
+
+                <!-- University-Benchmarked Modules & Syllabus Breakdown -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 mt-4 pt-2 border-top" style="border-color: rgba(212, 175, 55, 0.25) !important;">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-mortarboard-fill me-2" style="color: #064e3b;"></i>University Curriculum, Modules & Syllabus Breakdown
+                        </h4>
+                        <p class="text-muted small mb-0 mt-1">
+                            Harvard CS50, MIT, and Stanford/CMU tiers. Content details are collapsed by default—click any topic headline to expand full reading, code blueprints, and assessments.
+                        </p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge" style="background: #064e3b; color: #d4af37; border: 1px solid #d4af37; font-weight: 700; padding: 6px 12px; border-radius: 20px;">
+                            <i class="bi bi-collection-fill me-1"></i> {{ total_modules|default:"9" }} Modules
+                        </span>
+                        <span class="badge bg-success fw-bold" style="padding: 6px 12px; border-radius: 20px;">
+                            <i class="bi bi-journal-check me-1"></i> {{ total_lessons|default:"30" }} Lessons
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-semibold shadow-sm" onclick="toggleAllCourseDetailTopics();">
+                            <i class="bi bi-arrows-expand me-1" id="toggleAllIcon"></i> <span id="toggleAllText">Expand All Topics</span>
+                        </button>
+                    </div>
+                </div>
+
+                {% if course_tiers %}
+                <!-- Tier Navigation Tabs -->
+                <ul class="nav nav-pills mb-4 gap-2 flex-wrap" id="tierTabs" role="tablist">
+                    {% for tier in course_tiers %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if forloop.first %}active{% endif %} rounded-pill px-4 py-2 fw-bold" id="tier-tab-{{ tier.id }}" data-bs-toggle="pill" data-bs-target="#tier-pane-{{ tier.id }}" type="button" role="tab" style="font-size: 0.9rem;">
+                            {% if tier.level == 'Beginner' %}
+                                <i class="bi bi-bank me-1 text-danger"></i> Harvard CS50 (Beginner)
+                            {% elif tier.level == 'Intermediate' %}
+                                <i class="bi bi-cpu me-1 text-info"></i> MIT Logic (Intermediate)
+                            {% else %}
+                                <i class="bi bi-diagram-3-fill me-1 text-warning"></i> Stanford & CMU (Advanced)
+                            {% endif %}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Tier Tab Content -->
+                <div class="tab-content mb-4" id="tierTabsContent">
+                    {% for tier in course_tiers %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="tier-pane-{{ tier.id }}" role="tabpanel">
+                        
+                        <!-- Tier Header Card -->
+                        <div class="p-3 mb-4 rounded-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: rgba(6, 78, 59, 0.05); border: 1.5px solid rgba(212, 175, 55, 0.35);">
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge" style="background: #064e3b; color: #d4af37; font-weight: 800; font-size: 0.8rem; border-radius: 8px;">
+                                        {{ tier.level|upper }} TIER
+                                    </span>
+                                    <h5 class="fw-bold text-dark mb-0">{{ tier.benchmark }}</h5>
+                                </div>
+                                <p class="text-muted small mb-0 mt-1">{{ tier.benchmark_description }}</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'admin_course_level_detail' tier.slug %}" class="btn btn-sm btn-success fw-semibold rounded-pill px-3 shadow-sm">
+                                    <i class="bi bi-layers-half me-1"></i> Open Level Studio
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Modules List for this Tier -->
+                        {% for module in tier.academic_modules.all %}
+                        <div class="module-group-block mb-4 p-3 rounded-3" style="background: #ffffff; border: 1.5px solid #d4af37; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);">
+                            <!-- Module Title & Stats -->
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-2 mb-3 border-bottom" style="border-color: rgba(212, 175, 55, 0.25) !important;">
+                                <div>
+                                    <span class="badge" style="background: #064e3b; color: #d4af37; font-size: 0.75rem; font-weight: 800; border-radius: 6px; padding: 4px 8px;">
+                                        MODULE {{ module.order }}
+                                    </span>
+                                    <h5 class="fw-bold mt-1 mb-0" style="color: #064e3b;">{{ module.title }}</h5>
+                                    {% if module.description %}
+                                        <p class="text-muted small mb-0 mt-1">{{ module.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border small fw-semibold">
+                                        <i class="bi bi-clock me-1 text-warning"></i> ~{{ module.estimated_hours }} Hours
+                                    </span>
+                                    <span class="badge bg-success-subtle text-success small fw-bold">
+                                        {{ module.lessons.count }} Lessons
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Lessons Accordion (Collapsed by Default) -->
+                            <div class="d-flex flex-column gap-2">
+                                {% for lesson in module.lessons.all %}
+                                <div class="topic-item-card rounded-3 overflow-hidden" style="border: 1px solid rgba(212, 175, 55, 0.35); background: #fafaf9;">
+                                    
+                                    <!-- Main Topic Trigger: Click to Expand / Collapse -->
+                                    <button class="topic-btn-trigger collapsed w-100 p-3 text-start d-flex justify-content-between align-items-center gap-3 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#topicDetails_{{ lesson.id }}" aria-expanded="false" style="background: #ffffff; cursor: pointer; transition: all 0.2s ease;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge" style="background: #064e3b; color: #d4af37; border-radius: 8px; font-size: 0.82rem; padding: 6px 10px; font-weight: 800;">
+                                                L{{ lesson.order }}
+                                            </span>
+                                            <div>
+                                                <h6 class="fw-bold mb-0 text-success" style="font-size: 1.02rem;">{{ lesson.title }}</h6>
+                                                <span class="small text-muted" style="font-size: 0.82rem;">{{ lesson.summary|default:"Deep technical architecture, code implementation, lab task, and quiz."|truncatewords:15 }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-light text-dark border small fw-semibold">
+                                                {{ lesson.estimated_minutes|default:"45" }} mins
+                                            </span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis small fw-semibold d-none d-md-inline-block">
+                                                Click to View Content
+                                            </span>
+                                            <i class="bi bi-chevron-down fs-6 text-muted topic-chevron"></i>
+                                        </div>
+                                    </button>
+
+                                    <!-- Collapsed Content Details (Hidden by Default) -->
+                                    <div id="topicDetails_{{ lesson.id }}" class="collapse topic-content-collapse">
+                                        <div class="p-4" style="background: #ffffff; border-top: 1px dashed rgba(212, 175, 55, 0.3);">
+                                            
+                                            <!-- Reading Content -->
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                                    <i class="bi bi-book-fill text-warning me-1"></i> Core Long-form Reading Material
+                                                </h6>
+                                                <div class="p-3 rounded-3" style="background: #fbfcfd; border: 1px solid rgba(212, 175, 55, 0.25); max-height: 380px; overflow-y: auto; font-size: 0.9rem; line-height: 1.6;">
+                                                    {{ lesson.reading_content|safe }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Code Examples Blueprints -->
+                                            {% if lesson.code_examples %}
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                                    <i class="bi bi-code-slash text-info me-1"></i> Production Code Blueprints
+                                                </h6>
+                                                {% for code_ex in lesson.code_examples %}
+                                                <div class="mb-3 rounded-3 overflow-hidden" style="border: 1.5px solid rgba(212, 175, 55, 0.4);">
+                                                    <div class="px-3 py-2 bg-dark text-white d-flex justify-content-between align-items-center small">
+                                                        <span class="fw-bold" style="color: #d4af37;"><i class="bi bi-file-earmark-code me-1"></i>{{ code_ex.title|default:"Code Architecture" }}</span>
+                                                        <span class="badge bg-secondary-subtle text-secondary font-monospace">Production Ready</span>
+                                                    </div>
+                                                    <pre class="mb-0 p-3" style="background: #0f172a; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto;">{{ code_ex.code }}</pre>
+                                                    {% if code_ex.explanation %}
+                                                    <div class="p-2 bg-light text-muted small border-top">
+                                                        <strong>Analysis:</strong> {{ code_ex.explanation }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+
+                                            <!-- Enterprise Use Cases -->
+                                            {% if lesson.use_cases %}
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold text-uppercase small text-muted mb-2 tracking-wide">
+                                                    <i class="bi bi-building-check text-success me-1"></i> Enterprise & Industry Use Cases
+                                                </h6>
+                                                <div class="row g-2">
+                                                    {% for uc in lesson.use_cases %}
+                                                    <div class="col-12">
+                                                        <div class="p-3 rounded-3" style="background: rgba(6, 78, 59, 0.04); border-left: 4px solid #064e3b;">
+                                                            <div class="fw-bold small text-dark mb-1"><i class="bi bi-gear-wide-connected me-1"></i>{{ uc.scenario }}</div>
+                                                            <p class="small text-muted mb-0">{{ uc.solution }}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            <!-- Daily Lab Challenge & Diagnostic Quiz -->
+                                            <div class="row g-3 pt-3 border-top" style="border-color: rgba(212, 175, 55, 0.25) !important;">
+                                                <!-- Assignment -->
+                                                <div class="col-lg-6">
+                                                    <div class="p-3 rounded-3 h-100" style="background: #fdfbf7; border: 1.5px solid #d4af37;">
+                                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                                            <span class="fw-bold" style="color: #064e3b;">
+                                                                <i class="bi bi-pencil-square text-warning me-1"></i> Engineering Lab Challenge
+                                                            </span>
+                                                            <span class="badge bg-warning-subtle text-dark small">Rigorous Task</span>
+                                                        </div>
+                                                        <p class="small text-dark mb-2" style="white-space: pre-line; line-height: 1.6;">
+                                                            {{ lesson.assignment_prompt|default:"Implement the day's architectural blueprint and submit your code solution for automated review." }}
+                                                        </p>
+                                                        {% if lesson.assignment_rubric %}
+                                                        <div class="p-2 rounded-2 mt-2" style="background: #ffffff; border: 1px dashed #d4af37; font-size: 0.78rem; color: #475569;">
+                                                            <strong>Grading Rubric:</strong>
+                                                            <div style="white-space: pre-line;">{{ lesson.assignment_rubric }}</div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <!-- Diagnostic Quiz -->
+                                                <div class="col-lg-6">
+                                                    <div class="p-3 rounded-3 h-100" style="background: #ffffff; border: 1.5px solid #064e3b;">
+                                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                                            <span class="fw-bold text-success">
+                                                                <i class="bi bi-patch-question text-success me-1"></i> Diagnostic Assessment (5 MCQs)
+                                                            </span>
+                                                            <span class="badge bg-success-subtle text-success small">Instant AI Grading</span>
+                                                        </div>
+                                                        {% if lesson.quiz_data %}
+                                                        <div class="accordion accordion-flush" id="quizAccCourse_{{ lesson.id }}">
+                                                            {% for q in lesson.quiz_data %}
+                                                            <div class="accordion-item bg-transparent">
+                                                                <h2 class="accordion-header" id="heading_cq_{{ lesson.id }}_{{ forloop.counter }}">
+                                                                    <button class="accordion-button collapsed py-2 px-0 bg-transparent text-dark small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_cq_{{ lesson.id }}_{{ forloop.counter }}">
+                                                                        Q{{ forloop.counter }}: {{ q.question|truncatechars:55 }}
+                                                                    </button>
+                                                                </h2>
+                                                                <div id="collapse_cq_{{ lesson.id }}_{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#quizAccCourse_{{ lesson.id }}">
+                                                                    <div class="accordion-body px-0 py-2 small">
+                                                                        <p class="fw-semibold mb-2" style="color: #064e3b;">{{ q.question }}</p>
+                                                                        <ul class="list-unstyled mb-2">
+                                                                            {% for opt in q.options %}
+                                                                            <li class="mb-1 {% if forloop.counter0 == q.correct_answer or opt == q.answer %}text-success fw-bold{% else %}text-muted{% endif %}">
+                                                                                {% if forloop.counter0 == q.correct_answer or opt == q.answer %}✓{% else %}•{% endif %} {{ opt }}
+                                                                            </li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                        {% if q.explanation %}
+                                                                        <div class="p-2 rounded bg-light border small text-muted">
+                                                                            <strong>Explanation:</strong> {{ q.explanation }}
+                                                                        </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% else %}
+                                                        <p class="text-muted small mb-0">Automated diagnostic quiz synchronized with university benchmark syllabus.</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {% empty %}
+                                <div class="p-3 text-muted small text-center">No academic lessons registered in this module.</div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                        {% empty %}
+                        <!-- Fallback to canonical lessons if modules not explicitly nested -->
+                        <div class="d-flex flex-column gap-2">
+                            {% for d_les in tier.canonical_lessons.all %}
+                            <div class="topic-item-card rounded-3 overflow-hidden" style="border: 1px solid rgba(212, 175, 55, 0.35); background: #fafaf9;">
+                                <button class="topic-btn-trigger collapsed w-100 p-3 text-start d-flex justify-content-between align-items-center gap-3 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#topicDetailsDaily_{{ d_les.id }}" aria-expanded="false" style="background: #ffffff; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="badge" style="background: #064e3b; color: #d4af37; border-radius: 8px; font-size: 0.82rem; padding: 6px 10px; font-weight: 800;">
+                                            DAY {{ d_les.day_number }}
+                                        </span>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-success" style="font-size: 1.02rem;">{{ d_les.title }}</h6>
+                                            <span class="small text-muted" style="font-size: 0.82rem;">{{ d_les.content|striptags|truncatewords:15 }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="{% url 'download_lesson_ppt' d_les.id %}" class="btn btn-sm btn-outline-warning text-dark py-1 px-2" title="Download PPT" onclick="event.stopPropagation();">
+                                            <i class="bi bi-file-earmark-ppt"></i> PPT
+                                        </a>
+                                        <i class="bi bi-chevron-down fs-6 text-muted topic-chevron"></i>
+                                    </div>
+                                </button>
+                                <div id="topicDetailsDaily_{{ d_les.id }}" class="collapse topic-content-collapse">
+                                    <div class="p-4" style="background: #ffffff; border-top: 1px dashed rgba(212, 175, 55, 0.3);">
+                                        <div class="mb-4">
+                                            <h6 class="fw-bold text-uppercase small text-muted mb-2"><i class="bi bi-book-fill text-warning me-1"></i> Day {{ d_les.day_number }} Syllabus Content</h6>
+                                            <div class="p-3 rounded-3" style="background: #fbfcfd; border: 1px solid rgba(212, 175, 55, 0.25); max-height: 380px; overflow-y: auto;">
+                                                {{ d_les.content|safe }}
+                                            </div>
+                                        </div>
+                                        {% if d_les.task %}
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="p-3 rounded-3 h-100" style="background: #fdfbf7; border: 1.5px solid #d4af37;">
+                                                    <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-pencil-square text-warning me-1"></i> Assignment Challenge</h6>
+                                                    <p class="small text-dark mb-0" style="white-space: pre-line;">{{ d_les.task.assignment_question }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="p-3 rounded-3 h-100" style="background: #ffffff; border: 1.5px solid #064e3b;">
+                                                    <h6 class="fw-bold text-success mb-2"><i class="bi bi-patch-question text-success me-1"></i> Diagnostic Assessment</h6>
+                                                    <p class="small text-muted mb-0">5 Diagnostic Questions pre-generated in database.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-3 text-muted small text-center">No daily lessons registered for this tier.</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning py-3 rounded-3 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> University curriculum tiers are currently being synchronized.
+                </div>
+                {% endif %}
+
+                <!-- Admin Action Buttons -->
+                <div class="d-flex flex-wrap gap-3 pt-3 border-top">
+                    <a href="{% url 'courses_info' %}" class="btn btn-outline-success px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                        <i class="bi bi-arrow-left me-2"></i>All Courses
+                    </a>
+                </div>
+            </div>
+
+            <!-- Enrolled Students Table Section -->
+            <div class="dashboard-card p-4 shadow-sm mb-4" style="background: white; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill me-2 text-success"></i>Students Enrolled In This Course</h5>
+                    <span class="badge bg-success rounded-pill px-3 py-2">{{ enrolled_count }} Total</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Student Name</th>
+                                <th scope="col">Student ID</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Assignments & Quizzes</th>
+                                <th scope="col">Progress</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Enrolled Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in enrollments %}
+                            <tr>
+                                <td class="fw-semibold text-dark">
+                                    <i class="bi bi-person-circle me-1 text-success"></i> {{ item.full_name }}
+                                </td>
+                                <td>
+                                    <span class="badge px-2 py-1 fw-bold" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #064e3b; font-size: 0.78rem;">
+                                        {{ item.student_id }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small">{{ item.email }}</td>
+                                
+                                <!-- Assignments & Quizzes count -->
+                                <td>
+                                    <span class="small text-dark fw-bold">A:</span> {{ item.attempted_assignments }}/{{ item.total_assignments }}<br>
+                                    <span class="small text-dark fw-bold">Q:</span> {{ item.attempted_quizzes }}/{{ item.total_quizzes }}
+                                </td>
+
+                                <!-- Progress Percentage -->
+                                <td>
+                                    <div class="progress mb-1" style="height: 6px; width: 90px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ item.progress|default:0 }}%;"></div>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 11px;">{{ item.progress|default:0 }}% ({{ item.completed_lessons }}/{{ item.total_lessons }})</small>
+                                </td>
+
+                                <!-- Status: Completed / Active -->
+                                <td>
+                                    {% if item.status == 'Completed' %}
+                                        <span class="badge bg-success px-2 py-1">Completed</span>
+                                    {% else %}
+                                        <span class="badge px-2 py-1" style="background: #064e3b; color: #d4af37; border: 1px solid #d4af37;">Active</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <small class="text-muted">{{ item.enrolled_at|date:"M d, Y" }}</small>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-info-circle me-1"></i> No students have generated or enrolled in this specific course yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Instructor & Live Stats Sidebar -->
+        <div class="col-lg-4">
+            <div class="dashboard-card p-4 shadow-sm mb-4 text-center" style="background: white; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25);">
+                <div class="mb-3 text-success fs-1 p-3 rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="background-color: rgba(1, 65, 28, 0.08);">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Instructor Profile</h4>
+                <p class="text-success fw-bold mb-3">ALVIX AI Autonomous Engine</p>
+                <p class="text-muted small mb-4">This master course template is dynamically utilized and synchronized by student registration profiles.</p>
+                
+                <div class="p-3 rounded-3 mb-3 text-start" style="background-color: rgba(1, 65, 28, 0.03); border: 1px dashed rgba(212, 175, 55, 0.5);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Course ID:</span>
+                        <strong class="text-dark small fw-bold" style="color: #064e3b !important;">{{ course.course_code|default:course.slug }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Course Slug:</span>
+                        <strong class="text-muted small" style="word-break: break-all;">{{ course.slug }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Enrolled Students:</span>
+                        <strong class="text-dark">{{ enrolled_count }} Students</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">AI Generation Status:</span>
+                        <span class="badge bg-success">ON (Live)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-golden { color: #8C7320; border: 1.5px solid #D4AF37; background-color: transparent; transition: all 0.2s ease-in-out; }
+    .btn-outline-golden:hover { background-color: #D4AF37; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); }
+    .btn-outline-success { color: #01411C; border: 1.5px solid #01411C; background-color: transparent; }
+    .btn-outline-success:hover { background-color: #01411C; color: #fff; }
+    
+    /* Topic Accordion Styling */
+    .topic-btn-trigger {
+        cursor: pointer;
+        outline: none;
+    }
+    .topic-btn-trigger:hover {
+        background-color: #f8fafc !important;
+    }
+    .topic-btn-trigger .topic-chevron {
+        transition: transform 0.25s ease;
+    }
+    .topic-btn-trigger:not(.collapsed) .topic-chevron {
+        transform: rotate(180deg);
+        color: #064e3b !important;
+    }
+    .topic-item-card {
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .topic-item-card:hover {
+        border-color: #b8860b !important;
+        box-shadow: 0 3px 10px rgba(212, 175, 55, 0.18);
+    }
+    #tierTabs .nav-link {
+        color: #064e3b;
+        background: #f1f5f9;
+        border: 1.5px solid rgba(212, 175, 55, 0.3);
+        transition: all 0.2s ease;
+    }
+    #tierTabs .nav-link.active {
+        color: #d4af37 !important;
+        background: #064e3b !important;
+        border-color: #d4af37 !important;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }
+</style>
+
+<script>
+function toggleAllCourseDetailTopics() {
+    const activePane = document.querySelector('#tierTabsContent .tab-pane.active') || document;
+    const collapses = activePane.querySelectorAll('.topic-content-collapse');
+    const triggers = activePane.querySelectorAll('.topic-btn-trigger');
+    const toggleIcon = document.getElementById('toggleAllIcon');
+    const toggleText = document.getElementById('toggleAllText');
+
+    let anyOpen = Array.from(collapses).some(c => c.classList.contains('show'));
+    
+    collapses.forEach(c => {
+        if (anyOpen) {
+            c.classList.remove('show');
+        } else {
+            c.classList.add('show');
+        }
+    });
+
+    triggers.forEach(t => {
+        if (anyOpen) {
+            t.classList.add('collapsed');
+            t.setAttribute('aria-expanded', 'false');
+        } else {
+            t.classList.remove('collapsed');
+            t.setAttribute('aria-expanded', 'true');
+        }
+    });
+
+    if (toggleIcon && toggleText) {
+        if (anyOpen) {
+            toggleIcon.className = 'bi bi-arrows-expand me-1';
+            toggleText.textContent = 'Expand All Topics';
+        } else {
+            toggleIcon.className = 'bi bi-arrows-collapse me-1';
+            toggleText.textContent = 'Collapse All Topics';
+        }
+    }
+}
+</script>
+{% endblock admin_content %}
