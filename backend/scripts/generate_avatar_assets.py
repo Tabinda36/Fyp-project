@@ -1,239 +1,217 @@
 """
-Generates the 4 developer cartoon avatar PNG frames for Inara with transparent backgrounds.
-Saved to public/assets/avatar/
+Generates the 4 PNG frames of Inara, the ALVIX AI lecturer, with transparent backgrounds.
+
+Look (owner request, 2026-11-14): a modern professional lecturer — navy blazer with gold
+ALVIX lapel pin over a cream blouse, a soft taupe hijab, a tablet in one hand and a slim
+pointer in the other. The canvas (512x512), face position and the four frame names are
+unchanged, so the lesson player's layout and animations work as before.
+
+Frames: inara_idle.png, inara_blink.png, inara_mouth_open.png, inara_wave.png
+Output: backend/public/assets/avatar/   (run from anywhere:  python scripts/generate_avatar_assets.py)
 """
 import os
-import math
-from PIL import Image, ImageDraw
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'public', 'assets', 'avatar')
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+from PIL import Image, ImageDraw, ImageFilter
 
-WIDTH, HEIGHT = 512, 512
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTPUT_DIR = os.path.join(BACKEND_DIR, 'public', 'assets', 'avatar')
 
-# Color Palette (Emerald & Gold ALVIX theme)
-EMERALD_DARK = (6, 78, 59, 255)       # #064E3B
-EMERALD_MID  = (16, 110, 83, 255)     # #106E53
-EMERALD_LIGHT= (22, 140, 106, 255)    # #168C6A
-GOLD_ACCENT  = (212, 175, 55, 255)     # #D4AF37
-GOLD_LIGHT   = (254, 249, 231, 255)    # #FEF9E7
-SKIN_BASE    = (253, 222, 192, 255)    # #FDDEC0
-SKIN_SHADOW  = (240, 198, 164, 255)    # #F0C6A4
-CHEEK_BLUSH  = (248, 113, 113, 70)     # Soft rose
-EYE_COLOR    = (35, 22, 16, 255)       # Dark warm brown
-EYE_WHITE    = (255, 255, 255, 255)
-LIP_COLOR    = (205, 85, 85, 255)
-BOOK_COVER   = (6, 78, 59, 255)
-BOOK_PAGE    = (250, 248, 240, 255)
-GOLD_BORDER  = (212, 175, 55, 255)
+SIZE = 512
+SS = 3  # supersampling factor: draw at 3x, downscale with LANCZOS for smooth edges
 
-def draw_base_body_and_hijab(draw, frame_type):
-    # 1. Torso / Abaya (Lower half)
-    draw.polygon([
-        (130, 512), (180, 360), (332, 360), (382, 512)
-    ], fill=EMERALD_DARK)
-    
-    # Abaya Gold Center Placket
-    draw.line([(256, 360), (256, 512)], fill=GOLD_ACCENT, width=4)
-    # Small Gold Buttons
-    for y in [395, 430, 465, 500]:
-        draw.ellipse([252, y, 260, y + 8], fill=GOLD_ACCENT)
+# Palette
+NAVY = (27, 38, 64, 255)            # blazer
+NAVY_DARK = (17, 25, 45, 255)       # blazer shadows / lapel edges
+NAVY_LIGHT = (44, 58, 92, 255)      # lapel highlight
+BLOUSE = (247, 242, 232, 255)
+BLOUSE_SHADOW = (226, 217, 200, 255)
+HIJAB = (176, 150, 132, 255)        # soft taupe
+HIJAB_DARK = (146, 120, 104, 255)
+HIJAB_LIGHT = (199, 176, 158, 255)
+UNDERCAP = (238, 228, 214, 255)
+GOLD = (212, 175, 55, 255)
+GOLD_DARK = (168, 134, 30, 255)
+SKIN = (246, 214, 188, 255)
+SKIN_SHADOW = (229, 188, 160, 255)
+BLUSH = (235, 120, 120, 60)
+BROW = (62, 42, 32, 255)
+EYE = (44, 30, 22, 255)
+IRIS = (92, 60, 40, 255)
+WHITE = (255, 255, 255, 255)
+LIP = (196, 96, 98, 255)
+MOUTH_IN = (122, 40, 48, 255)
+TABLET = (36, 40, 48, 255)
+TABLET_SCREEN = (16, 110, 83, 255)  # ALVIX emerald
+EMERALD_LIGHT = (52, 168, 120, 255)
 
-    # 2. Hijab Shoulder Drape (flowing over shoulders)
-    draw.polygon([
-        (120, 512), (160, 340), (210, 310), (302, 310), (352, 340), (392, 512)
-    ], fill=EMERALD_MID)
-    # Shoulder drape fold lines
-    draw.arc([140, 330, 260, 480], start=30, end=110, fill=EMERALD_DARK, width=3)
-    draw.arc([252, 330, 372, 480], start=70, end=150, fill=EMERALD_DARK, width=3)
 
-    # 3. Hijab Hood Base (Behind head & around neck)
-    draw.ellipse([140, 90, 372, 360], fill=EMERALD_DARK)
-    draw.ellipse([148, 96, 364, 350], fill=EMERALD_MID)
+def S(*coords):
+    """Scale 512-space coordinates to the supersampled canvas."""
+    if len(coords) == 1 and isinstance(coords[0], (list, tuple)):
+        coords = coords[0]
+    out = []
+    for c in coords:
+        if isinstance(c, (list, tuple)):
+            out.append(tuple(v * SS for v in c))
+        else:
+            out.append(c * SS)
+    return out
 
-    # 4. Under-cap Band (Forehead inner hijab layer)
-    draw.chord([192, 132, 320, 230], start=190, end=350, fill=GOLD_LIGHT)
-    draw.arc([192, 132, 320, 230], start=190, end=350, fill=GOLD_ACCENT, width=2)
 
-    # 5. Face Oval & Contours
-    draw.ellipse([190, 160, 322, 315], fill=SKIN_BASE)
-    # Soft jawline shadow
-    draw.arc([190, 160, 322, 315], start=40, end=140, fill=SKIN_SHADOW, width=3)
+def w(px):
+    return max(1, int(px * SS))
 
-    # 6. Hijab Outer Frame wrapping face snugly and elegantly
-    draw.polygon([
-        (160, 180), (192, 148), (256, 140), (320, 148), (352, 180),
-        (356, 260), (330, 325), (256, 355), (182, 325), (156, 260)
-    ], outline=GOLD_ACCENT, fill=None)
-    
-    # Hijab chest wrap tuck
-    draw.polygon([
-        (185, 320), (256, 365), (327, 320), (290, 380), (222, 380)
-    ], fill=EMERALD_DARK)
-    draw.polygon([
-        (205, 330), (256, 368), (307, 330), (280, 378), (232, 378)
-    ], fill=EMERALD_MID)
 
-    # 7. Eyebrows (Curved, expressive, graceful)
-    # Left eyebrow
-    draw.arc([212, 192, 244, 212], start=200, end=340, fill=(45, 30, 22, 255), width=3)
-    # Right eyebrow
-    draw.arc([268, 192, 300, 212], start=200, end=340, fill=(45, 30, 22, 255), width=3)
+# ---------------------------------------------------------------------------
+# Body
+# ---------------------------------------------------------------------------
+def draw_body(d):
+    # Hijab drape behind the shoulders
+    d.polygon(S([(150, 512), (168, 352), (214, 318), (298, 318), (344, 352), (362, 512)]), fill=HIJAB_DARK)
 
-    # 8. Nose (Subtle elegant cartoon nose)
-    draw.line([(256, 236), (258, 252), (253, 254)], fill=SKIN_SHADOW, width=2)
+    # Blazer torso
+    d.polygon(S([(108, 512), (128, 410), (170, 368), (226, 352), (286, 352), (342, 368), (384, 410), (404, 512)]), fill=NAVY)
+    # Shoulder shading
+    d.polygon(S([(108, 512), (128, 410), (170, 368), (150, 512)]), fill=NAVY_DARK)
+    d.polygon(S([(404, 512), (384, 410), (342, 368), (362, 512)]), fill=NAVY_DARK)
 
-    # 9. Cheeks Blush (Warm gentle glow)
-    # We create a temporary layer for transparent blush circles
-    blush_layer = Image.new('RGBA', (WIDTH, HEIGHT), (0, 0, 0, 0))
-    bdraw = ImageDraw.Draw(blush_layer)
-    bdraw.ellipse([200, 245, 230, 265], fill=CHEEK_BLUSH)
-    bdraw.ellipse([282, 245, 312, 265], fill=CHEEK_BLUSH)
-    return blush_layer
+    # Blouse V
+    d.polygon(S([(222, 356), (290, 356), (256, 470)]), fill=BLOUSE)
+    d.line(S([(256, 380), (256, 470)]), fill=BLOUSE_SHADOW, width=w(2))
+    for y in (400, 428, 456):
+        d.ellipse(S([253, y, 259, y + 6]), fill=BLOUSE_SHADOW)
 
-def draw_eyes(draw, is_blinking):
-    if is_blinking:
-        # Gentle curved closed eyes with lashes
-        # Left closed eye
-        draw.arc([214, 218, 244, 236], start=20, end=160, fill=EYE_COLOR, width=3)
-        draw.line([(214, 227), (210, 223)], fill=EYE_COLOR, width=2)
-        draw.line([(244, 227), (248, 223)], fill=EYE_COLOR, width=2)
-        # Right closed eye
-        draw.arc([268, 218, 298, 236], start=20, end=160, fill=EYE_COLOR, width=3)
-        draw.line([(268, 227), (264, 223)], fill=EYE_COLOR, width=2)
-        draw.line([(298, 227), (302, 223)], fill=EYE_COLOR, width=2)
+    # Lapels (notched)
+    d.polygon(S([(222, 356), (200, 372), (214, 404), (204, 416), (256, 482), (240, 420)]), fill=NAVY_LIGHT)
+    d.polygon(S([(290, 356), (312, 372), (298, 404), (308, 416), (256, 482), (272, 420)]), fill=NAVY_LIGHT)
+    d.line(S([(222, 356), (240, 420), (256, 482)]), fill=NAVY_DARK, width=w(2))
+    d.line(S([(290, 356), (272, 420), (256, 482)]), fill=NAVY_DARK, width=w(2))
+
+    # Gold ALVIX lapel pin
+    d.ellipse(S([290, 392, 306, 408]), fill=GOLD, outline=GOLD_DARK, width=w(1.5))
+    d.polygon(S([(298, 395), (302, 404), (294, 404)]), fill=GOLD_DARK)
+
+    # Blazer button
+    d.ellipse(S([251, 488, 261, 498]), fill=GOLD_DARK)
+
+
+def draw_hijab_and_face(d):
+    # Hijab hood around the head
+    d.ellipse(S([152, 96, 360, 352]), fill=HIJAB_DARK)
+    d.ellipse(S([158, 100, 354, 344]), fill=HIJAB)
+    # Soft highlight on the crown
+    d.chord(S([176, 104, 336, 230]), start=200, end=340, fill=HIJAB_LIGHT)
+
+    # Under-cap band on the forehead
+    d.chord(S([194, 134, 318, 226]), start=190, end=350, fill=UNDERCAP)
+
+    # Face
+    d.ellipse(S([194, 158, 318, 312]), fill=SKIN)
+    d.arc(S([194, 158, 318, 312]), start=35, end=145, fill=SKIN_SHADOW, width=w(3))
+
+    # Hijab wrap under the chin and across the neck
+    d.polygon(S([(184, 300), (214, 330), (256, 344), (298, 330), (328, 300), (338, 352), (256, 380), (174, 352)]), fill=HIJAB)
+    d.arc(S([196, 290, 316, 372]), start=20, end=160, fill=HIJAB_DARK, width=w(3))
+
+    # Eyebrows (thin, gently arched)
+    d.arc(S([212, 194, 246, 214]), start=205, end=335, fill=BROW, width=w(3))
+    d.arc(S([266, 194, 300, 214]), start=205, end=335, fill=BROW, width=w(3))
+
+    # Nose
+    d.line(S([(257, 236), (259, 254), (252, 257)]), fill=SKIN_SHADOW, width=w(2.5))
+
+
+def draw_blush(size):
+    layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(layer)
+    bd.ellipse(S([204, 248, 232, 266]), fill=BLUSH)
+    bd.ellipse(S([280, 248, 308, 266]), fill=BLUSH)
+    return layer.filter(ImageFilter.GaussianBlur(3 * SS))
+
+
+def draw_eyes(d, blinking):
+    if blinking:
+        for x in (214, 268):
+            d.arc(S([x, 218, x + 30, 236]), start=20, end=160, fill=EYE, width=w(3))
+            d.line(S([(x + 28, 228), (x + 33, 224)]), fill=EYE, width=w(2))
+        return
+    for x in (214, 268):
+        d.ellipse(S([x, 214, x + 30, 236]), fill=WHITE)
+        d.ellipse(S([x + 7, 214, x + 25, 236]), fill=IRIS)
+        d.ellipse(S([x + 10, 218, x + 22, 232]), fill=EYE)
+        d.ellipse(S([x + 15, 218, x + 20, 223]), fill=WHITE)
+        d.ellipse(S([x + 10, 228, x + 13, 231]), fill=(255, 255, 255, 190))
+        # Upper lid line + outer lash flick
+        d.arc(S([x - 2, 210, x + 32, 234]), start=190, end=350, fill=EYE, width=w(3))
+        d.line(S([(x + 30, 216), (x + 35, 212)]), fill=EYE, width=w(2))
+
+
+def draw_mouth(d, state):
+    if state == 'closed':
+        d.arc(S([240, 268, 272, 286]), start=20, end=160, fill=LIP, width=w(3))
+    elif state == 'open':
+        d.chord(S([238, 268, 274, 294]), start=0, end=180, fill=MOUTH_IN)
+        d.chord(S([242, 269, 270, 278]), start=0, end=180, fill=WHITE)
+        d.arc(S([238, 268, 274, 294]), start=0, end=180, fill=LIP, width=w(2.5))
+    else:  # smiling, for the wave
+        d.chord(S([236, 266, 276, 290]), start=10, end=170, fill=MOUTH_IN)
+        d.chord(S([239, 267, 273, 276]), start=0, end=180, fill=WHITE)
+        d.arc(S([235, 265, 277, 292]), start=10, end=170, fill=LIP, width=w(2.5))
+
+
+def draw_hands(d, waving):
+    # Left side of the picture: tablet held against the chest
+    d.rounded_rectangle(S([150, 404, 226, 500]), radius=8 * SS, fill=TABLET)
+    d.rounded_rectangle(S([156, 410, 220, 494]), radius=5 * SS, fill=TABLET_SCREEN)
+    # Tiny "slide" on the screen: title bar + bars
+    d.rectangle(S([162, 418, 214, 426]), fill=GOLD)
+    for i, h in enumerate((22, 34, 16, 28)):
+        x = 166 + i * 12
+        d.rectangle(S([x, 480 - h, x + 7, 480]), fill=EMERALD_LIGHT)
+    # Hand gripping the tablet's edge
+    d.ellipse(S([206, 440, 236, 472]), fill=SKIN)
+    d.arc(S([206, 440, 236, 472]), start=90, end=270, fill=SKIN_SHADOW, width=w(2))
+
+    if not waving:
+        # Right side: hand low, holding a slim pointer angled outward
+        d.line(S([(318, 462), (420, 380)]), fill=GOLD_DARK, width=w(5))
+        d.ellipse(S([414, 374, 426, 386]), fill=GOLD)
+        d.ellipse(S([300, 446, 332, 478]), fill=SKIN)
+        d.arc(S([300, 446, 332, 478]), start=-90, end=90, fill=SKIN_SHADOW, width=w(2))
     else:
-        # Left Eye (White + Iris + Pupil + Glint)
-        draw.ellipse([214, 214, 244, 236], fill=EYE_WHITE)
-        draw.ellipse([222, 214, 240, 236], fill=EYE_COLOR)
-        draw.ellipse([224, 216, 238, 234], fill=(15, 10, 8, 255))
-        # Catchlight sparkles
-        draw.ellipse([230, 218, 235, 223], fill=(255, 255, 255, 255))
-        draw.ellipse([225, 228, 228, 231], fill=(255, 255, 255, 200))
-        # Eyelash line
-        draw.arc([212, 210, 246, 234], start=190, end=350, fill=EYE_COLOR, width=3)
-        draw.line([(244, 216), (249, 212)], fill=EYE_COLOR, width=2)
+        # Right arm raised beside the head, waving
+        d.polygon(S([(334, 372), (392, 286), (424, 304), (364, 400)]), fill=NAVY)
+        d.polygon(S([(392, 286), (424, 304), (418, 314), (386, 296)]), fill=BLOUSE)  # blouse cuff
+        d.ellipse(S([400, 238, 446, 286]), fill=SKIN)
+        d.polygon(S([(404, 266), (384, 254), (392, 244), (410, 256)]), fill=SKIN)  # thumb
+        for x, top in ((414, 208), (425, 202), (436, 207), (446, 218)):
+            d.rounded_rectangle(S([x, top, x + 11, 254]), radius=5 * SS, fill=SKIN)
+        d.arc(S([458, 196, 476, 222]), start=270, end=60, fill=GOLD, width=w(3))
+        d.arc(S([466, 224, 484, 250]), start=270, end=60, fill=GOLD, width=w(3))
 
-        # Right Eye
-        draw.ellipse([268, 214, 298, 236], fill=EYE_WHITE)
-        draw.ellipse([272, 214, 290, 236], fill=EYE_COLOR)
-        draw.ellipse([274, 216, 288, 234], fill=(15, 10, 8, 255))
-        # Catchlight sparkles
-        draw.ellipse([280, 218, 285, 223], fill=(255, 255, 255, 255))
-        draw.ellipse([275, 228, 278, 231], fill=(255, 255, 255, 200))
-        # Eyelash line
-        draw.arc([266, 210, 300, 234], start=190, end=350, fill=EYE_COLOR, width=3)
-        draw.line([(298, 216), (303, 212)], fill=EYE_COLOR, width=2)
 
-def draw_mouth(draw, mouth_state):
-    # mouth_state: 'closed' | 'open' | 'smiling_parted'
-    if mouth_state == 'closed':
-        # Gentle closed smile
-        draw.arc([238, 268, 274, 286], start=20, end=160, fill=LIP_COLOR, width=3)
-        # Subtle dimple accents
-        draw.line([(238, 275), (236, 273)], fill=LIP_COLOR, width=2)
-        draw.line([(274, 275), (276, 273)], fill=LIP_COLOR, width=2)
-    elif mouth_state == 'open':
-        # Speaking mouth: softly open showing teeth and rosy tone
-        draw.chord([236, 268, 276, 294], start=0, end=180, fill=(130, 35, 45, 255))
-        # Upper teeth line
-        draw.chord([240, 269, 272, 278], start=0, end=180, fill=(255, 255, 255, 255))
-        # Soft lower lip arc
-        draw.arc([236, 268, 276, 294], start=0, end=180, fill=LIP_COLOR, width=2)
-    elif mouth_state == 'smiling_parted':
-        # Cheerful parted smile for waving intro
-        draw.chord([236, 266, 276, 290], start=10, end=170, fill=(150, 45, 55, 255))
-        draw.chord([238, 267, 274, 276], start=0, end=180, fill=(255, 255, 255, 255))
-        draw.arc([235, 265, 277, 292], start=10, end=170, fill=LIP_COLOR, width=2)
+def generate_frame(filename, waving=False, blinking=False, mouth='closed'):
+    big = SIZE * SS
+    img = Image.new('RGBA', (big, big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    draw_body(d)
+    draw_hijab_and_face(d)
+    img = Image.alpha_composite(img, draw_blush(big))
+    d = ImageDraw.Draw(img)
+    draw_eyes(d, blinking)
+    draw_mouth(d, mouth)
+    draw_hands(d, waving)
 
-def draw_hands_and_book(draw, is_waving):
-    # Open Book in front of chest
-    book_left, book_top, book_right, book_bottom = 200, 385, 312, 470
-    
-    # Book Cover backing
-    draw.polygon([
-        (190, 400), (256, 420), (322, 400), (326, 480), (256, 498), (186, 480)
-    ], fill=EMERALD_DARK, outline=GOLD_BORDER)
+    img = img.resize((SIZE, SIZE), Image.LANCZOS)
+    path = os.path.join(OUTPUT_DIR, filename)
+    img.save(path, 'PNG', optimize=True)
+    print(f"Generated {path}")
 
-    # Book Pages (Left page & Right page)
-    draw.polygon([
-        (196, 406), (254, 422), (254, 490), (192, 475)
-    ], fill=BOOK_PAGE)
-    draw.polygon([
-        (258, 422), (316, 406), (320, 475), (258, 490)
-    ], fill=BOOK_PAGE)
-
-    # Page text lines (aesthetic miniature gold lines)
-    for y_off in [430, 442, 454, 466]:
-        draw.line([(204, y_off), (246, y_off + 4)], fill=(180, 160, 120, 255), width=2)
-        draw.line([(264, y_off + 4), (308, y_off)], fill=(180, 160, 120, 255), width=2)
-
-    # Left Hand holding book
-    draw.ellipse([180, 435, 206, 465], fill=SKIN_BASE)
-    draw.arc([180, 435, 206, 465], start=0, end=360, fill=SKIN_SHADOW, width=2)
-
-    if not is_waving:
-        # Right hand also holding book on right side
-        draw.ellipse([306, 435, 332, 465], fill=SKIN_BASE)
-        draw.arc([306, 435, 332, 465], start=0, end=360, fill=SKIN_SHADOW, width=2)
-    else:
-        # Right hand is RAISED, waving high beside head!
-        # Arm sleeve heading up towards the right
-        draw.polygon([
-            (325, 350), (390, 270), (420, 290), (345, 380)
-        ], fill=EMERALD_DARK)
-        # Gold sleeve cuff
-        draw.line([(390, 270), (420, 290)], fill=GOLD_ACCENT, width=4)
-
-        # Waving Hand Palm and Fingers
-        # Palm
-        draw.ellipse([405, 235, 450, 280], fill=SKIN_BASE)
-        # Thumb
-        draw.polygon([(408, 260), (388, 250), (398, 240), (415, 252)], fill=SKIN_BASE)
-        # Four fingers extended upward
-        draw.rounded_rectangle([420, 205, 432, 250], radius=5, fill=SKIN_BASE)
-        draw.rounded_rectangle([430, 200, 442, 250], radius=5, fill=SKIN_BASE)
-        draw.rounded_rectangle([440, 205, 452, 250], radius=5, fill=SKIN_BASE)
-        draw.rounded_rectangle([448, 215, 460, 255], radius=5, fill=SKIN_BASE)
-        
-        # Motion sparkle / wave lines
-        draw.arc([462, 195, 480, 220], start=270, end=60, fill=GOLD_ACCENT, width=3)
-        draw.arc([470, 222, 488, 248], start=270, end=60, fill=GOLD_ACCENT, width=3)
-
-def generate_frame(filename, is_waving=False, is_blinking=False, mouth_state='closed'):
-    img = Image.new('RGBA', (WIDTH, HEIGHT), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    # 1. Base body and Hijab
-    blush_layer = draw_base_body_and_hijab(draw, 'base')
-    
-    # 2. Eyes
-    draw_eyes(draw, is_blinking)
-
-    # 3. Mouth
-    draw_mouth(draw, mouth_state)
-
-    # 4. Hands & Book / Waving
-    draw_hands_and_book(draw, is_waving)
-
-    # Composite blush layer
-    img = Image.alpha_composite(img, blush_layer)
-
-    out_path = os.path.join(OUTPUT_DIR, filename)
-    img.save(out_path, 'PNG')
-    print(f"Generated frame: {out_path} ({img.size})")
 
 if __name__ == '__main__':
-    # 1. inara_idle.png (both hands holding the book, mouth closed, eyes open)
-    generate_frame('inara_idle.png', is_waving=False, is_blinking=False, mouth_state='closed')
-
-    # 2. inara_wave.png (one hand raised, waving, cheerful smile)
-    generate_frame('inara_wave.png', is_waving=True, is_blinking=False, mouth_state='smiling_parted')
-
-    # 3. inara_blink.png (eyes closed, mouth closed)
-    generate_frame('inara_blink.png', is_waving=False, is_blinking=True, mouth_state='closed')
-
-    # 4. inara_mouth_open.png (eyes open, mouth open speaking)
-    generate_frame('inara_mouth_open.png', is_waving=False, is_blinking=False, mouth_state='open')
-
-    print("All 4 Inara avatar frames generated successfully!")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    generate_frame('inara_idle.png')
+    generate_frame('inara_blink.png', blinking=True)
+    generate_frame('inara_mouth_open.png', mouth='open')
+    generate_frame('inara_wave.png', waving=True, mouth='smile')
+    print("All 4 Inara frames generated.")

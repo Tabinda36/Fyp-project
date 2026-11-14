@@ -770,7 +770,7 @@ def generate_deep_university_curriculum(course_level, force=False, use_ai=True):
                     day_number=idx,
                     title=acad_lesson.title,
                     content=acad_lesson.reading_content,
-                    is_unlocked=(idx == 1),
+                    is_unlocked=True,  # every day of the plan is open (owner request)
                     is_completed=False,
                     presentation_data={"slides": slide_deck, "slides_list": slides_list}
                 )

@@ -71,9 +71,15 @@ function QuizForm({ lesson, questions, onSubmitted }) {
 
 export default function QuizPage() {
   const { lessonId: pathLessonId } = useParams();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const lessonId = pathLessonId || params.get('lesson_id') || undefined;
   const { data, ready, reload } = usePageData('/lessons/quiz/', { lesson_id: lessonId });
+  // Opened without a day (bare /quiz/): after submitting, stay on the submitted day. A plain
+  // reload would let the server pick the next unattempted day and issue its quiz.
+  const afterSubmit = (submittedLessonId) => {
+    if (lessonId) reload();
+    else setParams({ lesson_id: String(submittedLessonId) }, { replace: true });
+  };
   usePageAssets({ css });
   const overlays = useNotificationOverlays();
   const panelExpired = useResultPanelReset(ready ? data : null, Boolean(data?.latest_submission));
@@ -125,7 +131,7 @@ export default function QuizPage() {
                     <small className="text-muted d-block mt-2">Check archived details and questions in your history record below.</small>
                   </div>
                 ) : questions.length ? (
-                  <QuizForm key={lesson.id} lesson={lesson} questions={questions} onSubmitted={reload} />
+                  <QuizForm key={lesson.id} lesson={lesson} questions={questions} onSubmitted={() => afterSubmit(lesson.id)} />
                 ) : (
                   <div className="text-center py-5 my-auto">
                     <div className="spinner-border text-warning mb-3" role="status"></div>

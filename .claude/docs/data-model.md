@@ -1,6 +1,6 @@
 # ALVIX data model
 
-Source: `alvixapp/models.py` (12 migrations, latest `0012_avatarsettings`). All models are in the single `alvixapp` app and use `django.contrib.auth.models.User`.
+Source: `alvixapp/models.py` (latest migration `0015_assignment_output_image_and_unlock_all`). All models are in the single `alvixapp` app and use `django.contrib.auth.models.User`.
 
 ## Users & profile
 | Model | Key fields | Notes |
@@ -23,10 +23,10 @@ Source: `alvixapp/models.py` (12 migrations, latest `0012_avatarsettings`). All 
 | Model | Key fields | Notes |
 |---|---|---|
 | `GeneratedCourse` (FK User, AdminCourse, CourseLevel) | `level`, `pace`, `course_type`, `content_topics`, `objective`, `ai_model` | **A student's enrolment instance.** Most student pages pick "active course" from here. |
-| `DailyLesson` | FK `generated_course` (student copy) **or** `course_level` with `generated_course=NULL` (canonical template lesson); `day_number`, `content`, `video_url`, `is_unlocked`, `is_completed`, `deadline`, `presentation_data` JSON, `ppt_file`, `watch_time_seconds`, `required_watch_seconds` (180), `assignment_issued_at`, `quiz_issued_at` | Day N of the plan. Canonical lessons are copied to students on enrolment. |
+| `DailyLesson` | FK `generated_course` (student copy) **or** `course_level` with `generated_course=NULL` (canonical template lesson); `day_number`, `content`, `video_url`, `is_unlocked`, `is_completed`, `deadline`, `presentation_data` JSON, `ppt_file`, `watch_time_seconds`, `required_watch_seconds` (180), `assignment_issued_at`, `quiz_issued_at` | Day N of the plan. Canonical lessons are copied to students on enrolment. All days are unlocked (`is_unlocked` default True since 0015). `assignment_issued_at` + `deadline` (2 days) are set when the student first opens that day's assignment. |
 | `LessonTask` (1:1 DailyLesson) | `assignment_question`, `assignment_data` JSON, `quiz_data` JSON | Generated assignment & quiz. |
-| `AssignmentSubmission` | `submitted_answer`, `file_submission`, `marks`/`total_marks` (10), `ai_feedback`, integrity telemetry (`paste_count`, `pasted_chars_total`, `typing_duration_seconds`, `keystroke_count`, `peer_similarity_score`, `ai_generated_probability`, `copy_risk_level`), `admin_reviewed` | One per user+lesson (updated on resubmit). |
-| `QuizSubmission` | `score`, `total_questions`, `percentage`, `wrong_answers_explanation` JSON, `question_summary` (HTML) | New row per attempt. ≥50 % unlocks next day. |
+| `AssignmentSubmission` | `submitted_answer`, `file_submission`, `output_image` (code output screenshot), `marks`/`total_marks` (10), `ai_feedback`, integrity telemetry (`paste_count`, `pasted_chars_total`, `typing_duration_seconds`, `keystroke_count`, `peer_similarity_score`, `ai_generated_probability`, `copy_risk_level`), `admin_reviewed` | One per user+lesson (updated on resubmit). |
+| `QuizSubmission` | `score`, `total_questions`, `percentage`, `wrong_answers_explanation` JSON, `question_summary` (HTML) | One attempt per lesson (enforced in `submit_quiz`). |
 | `StudentProgress`, `StudentCourse`, `StudentReport`, `Performance` | legacy/aggregate progress | `Performance` is 1:1 User summary. |
 | `Certificate` (FK User, GeneratedCourse) | `certificate_id` (unique), `is_unlocked`, `is_valid`, `overall_percentage`, `performance_grade`, `qr_code_data_uri`, `verification_url` | Recomputed on every submission by `certificate_service.update_or_create_student_certificate`. Unlocks at `COURSE_PASS_MARK` (35 %). |
 
@@ -42,4 +42,4 @@ Source: `alvixapp/models.py` (12 migrations, latest `0012_avatarsettings`). All 
 - `COURSE_PLAN_DURATIONS`: Theoretical 7, Practical 10, Mixed 12 days.
 - `DAY_SCORE_WEIGHTS`: watch time 20 %, assignment 40 %, quiz 40 % (used by `certificate_service`).
 - `COURSE_PASS_MARK = 35`.
-- Note: the dashboard and My Course views compute progress with *different* hard-coded weights (40/30/30) — see `known-issues.md`.
+- Dashboard, My Course and Performance all use `calculate_course_performance` (20/40/40) on the student's newest enrolment.

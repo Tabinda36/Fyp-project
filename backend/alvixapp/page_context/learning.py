@@ -12,7 +12,7 @@ import os
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
-from ..certificate_service import update_or_create_student_certificate
+from ..certificate_service import calculate_course_performance, update_or_create_student_certificate
 from ..course_tier_service import create_course_tiers_and_curriculum, fetch_and_enroll_student_in_level
 from ..models import (
     AdminCourse,
@@ -29,6 +29,19 @@ from ..permissions import is_alvix_admin
 logger = logging.getLogger(__name__)
 
 MYCOURSE_TABS = ['content', 'lessons', 'assignment', 'quiz', 'overview']
+
+
+def latest_quiz_per_lesson(submissions):
+    """Keeps the newest attempt per lesson (the one that is scored); input is newest first.
+    Older duplicate attempts stay in the database but are not listed twice."""
+    seen, result = set(), []
+    for sub in submissions:
+        if sub.lesson_id is not None:
+            if sub.lesson_id in seen:
+                continue
+            seen.add(sub.lesson_id)
+        result.append(sub)
+    return result
 
 
 def get_course_lessons(course):
@@ -98,10 +111,7 @@ def build_mycourse_context(request):
                 today_lesson = l
                 break
         if not today_lesson:
-            today_lesson = (
-                active_course.daily_lessons.filter(is_unlocked=True).last()
-                or (lessons[0] if lessons else None)
-            )
+            today_lesson = lessons[-1] if lessons else None  # every day completed
 
         try:
             assignment_submissions = list(
@@ -113,57 +123,21 @@ def build_mycourse_context(request):
             assignment_submissions = []
 
         try:
-            quiz_submissions = list(
+            quiz_submissions = latest_quiz_per_lesson(
                 QuizSubmission.objects.filter(user=request.user, lesson__in=lessons)
                 .select_related('lesson')
-                .order_by('-submitted_at')
+                .order_by('-submitted_at', '-id')
             )
         except Exception:
             quiz_submissions = []
 
-        total_lessons = len(lessons)
-        total_video_duration = 0
-        total_watch_time = 0
-        total_assignment_score_obtained = 0
-        total_assignment_max_score = 0
-        total_quiz_score_obtained = 0
-        total_quiz_max_score = 0
-
-        watch_time_percentage = 0
-        assignment_percentage = 0
-        quiz_percentage = 0
-
-        if total_lessons > 0:
-            for lesson in lessons:
-                vid_len = getattr(lesson, 'duration', 25)
-                w_time = getattr(lesson, 'watch_time', 25 if getattr(lesson, 'is_completed', False) else 0)
-                total_video_duration += vid_len
-                total_watch_time += min(w_time, vid_len)
-
-            watch_time_percentage = (total_watch_time / total_video_duration * 100) if total_video_duration > 0 else 0
-
-            for sub in assignment_submissions:
-                obtained = getattr(sub, 'marks', getattr(sub, 'score', 10))
-                max_m = getattr(sub, 'total_marks', 10)
-                total_assignment_score_obtained += obtained
-                total_assignment_max_score += max_m
-
-            if total_assignment_max_score == 0 and len(assignment_submissions) > 0:
-                total_assignment_max_score = len(assignment_submissions) * 10
-            assignment_percentage = (total_assignment_score_obtained / total_assignment_max_score * 100) if total_assignment_max_score > 0 else 0
-
-            for quiz in quiz_submissions:
-                obtained = getattr(quiz, 'score', getattr(quiz, 'marks_obtained', 0))
-                max_m = getattr(quiz, 'total_marks', 3)
-                total_quiz_score_obtained += obtained
-                total_quiz_max_score += max_m
-
-            if total_quiz_max_score == 0 and len(quiz_submissions) > 0:
-                total_quiz_max_score = len(quiz_submissions) * 3
-            quiz_percentage = (total_quiz_score_obtained / total_quiz_max_score * 100) if total_quiz_max_score > 0 else 0
-
-            weighted_score = (watch_time_percentage * 0.4) + (assignment_percentage * 0.3) + (quiz_percentage * 0.3)
-            progress_percentage = int(round(weighted_score))
+        # Same scoring engine as the Performance page and the certificate (20/40/40 per day),
+        # so every page shows the same course percentage.
+        try:
+            progress_percentage = calculate_course_performance(request.user, active_course)['overall_percentage']
+        except Exception:  # scoring must never break the page
+            logger.exception('Course performance failed for user %s', request.user.pk)
+            progress_percentage = 0
 
         certificate_obj = Certificate.objects.filter(user=request.user, course=active_course).first()
 
@@ -440,7 +414,10 @@ def resolve_current_lesson(request):
         return lesson_id, None
     active_course = GeneratedCourse.objects.filter(user=request.user).order_by('-created_at').first()
     if active_course:
-        lesson = active_course.daily_lessons.filter(is_unlocked=True).last() or active_course.daily_lessons.first()
+        # The student's current day: the first day not completed yet (every day is unlocked, so
+        # "the last unlocked day" would be the end of the course). All done -> the last day.
+        days = active_course.daily_lessons.order_by('day_number')
+        lesson = days.filter(is_completed=False).first() or days.last()
         if lesson:
             return lesson.id, None
     return None, "No active lesson found."

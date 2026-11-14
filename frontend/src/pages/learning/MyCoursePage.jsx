@@ -445,9 +445,9 @@ function MyCourseContent({ data }) {
                   <span style={{ width: `${progressNum}%` }} />
                 </div>
                 <div className="smc-weights">
-                  <span>Watch time 40%</span>
-                  <span>Assignments 30%</span>
-                  <span>Quizzes 30%</span>
+                  <span>Watch time 20%</span>
+                  <span>Assignments 40%</span>
+                  <span>Quizzes 40%</span>
                 </div>
               </div>
               <div className="smc-row">

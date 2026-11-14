@@ -8,6 +8,8 @@ business logic lives in exactly one place.
 
 import logging
 
+from django.conf import settings
+
 from ..certificate_service import calculate_course_performance, update_or_create_student_certificate
 from ..models import (
     AdminCourse,
@@ -41,101 +43,42 @@ def dashboard_requires_assessment(user):
 def build_dashboard_context(request):
     # Fetch only the courses specifically chosen/enrolled by this student
     generated_courses = GeneratedCourse.objects.filter(user=request.user).select_related('admin_course', 'course_level').order_by('id')
-    active_course = generated_courses.first() or GeneratedCourse.objects.filter(user=request.user).order_by('-created_at').first()
+    # Same course as the Performance page (the newest enrolment), so both pages agree.
+    active_course = GeneratedCourse.objects.filter(user=request.user).select_related('admin_course').order_by('-created_at').first()
 
-    # Performance & Weighted Score Calculation for Dashboard
-    total_lessons = 0
-    completed_lessons = 0
-    total_video_duration = 0
-    total_watch_time = 0
-
-    total_assignment_score_obtained = 0
-    total_assignment_max_score = 0
-
-    total_quiz_score_obtained = 0
-    total_quiz_max_score = 0
-
-    overall_score = 0
-    grade = "Beginner"
-
-    # Default variables to avoid UnboundLocalError if active_course is None
-    watch_time_percentage = 0
-    assignment_percentage = 0
-    quiz_percentage = 0
-
+    # Performance comes from the same scoring engine as the Performance page and the certificate
+    # (certificate_service.calculate_course_performance: 20% watch time, 40% assignment, 40% quiz
+    # per day). It used to be a separate 40/30/30 estimate that never matched the student's record.
+    perf = None
     if active_course:
-        lessons = DailyLesson.objects.filter(generated_course=active_course)
-        total_lessons = lessons.count()
-        completed_lessons = lessons.filter(is_completed=True).count()
-
-        # 1. Watch Time Calculation (40% Weight)
-        for lesson in lessons:
-            vid_len = getattr(lesson, 'duration', 25)
-            w_time = getattr(lesson, 'watch_time', 25 if getattr(lesson, 'is_completed', False) else 0)
-            total_video_duration += vid_len
-            total_watch_time += min(w_time, vid_len)
-
-        watch_time_percentage = (total_watch_time / total_video_duration * 100) if total_video_duration > 0 else 0
-
-        # 2. Assignment Calculation (30% Weight)
-        assignment_subs = []
         try:
-            assignment_subs = AssignmentSubmission.objects.filter(user=request.user, lesson__in=lessons)
-            for sub in assignment_subs:
-                obtained = getattr(sub, 'marks', getattr(sub, 'score', 10))
-                max_m = getattr(sub, 'total_marks', 10)
-                total_assignment_score_obtained += obtained
-                total_assignment_max_score += max_m
-        except:  # noqa: E722  (kept from the original view)
-            pass
+            perf = calculate_course_performance(request.user, active_course)
+        except Exception:  # scoring must never break the dashboard
+            logger.exception('Course performance failed for user %s', request.user.pk)
 
-        if total_assignment_max_score == 0 and len(assignment_subs) > 0:
-            total_assignment_max_score = len(assignment_subs) * 10
+    if perf:
+        overall_score = perf['overall_percentage']  # same value (1 decimal) as the Performance page
+        grade = perf['performance_grade']
+        certificate_unlocked = bool(perf['certificate_unlocked'])
+        days = perf['day_evaluations']
+        total_days = perf['total_days'] or 1
+        weights = getattr(settings, 'DAY_SCORE_WEIGHTS', {'watch_time': 0.20, 'assignment': 0.40, 'quiz': 0.40})
 
-        assignment_percentage = (total_assignment_score_obtained / total_assignment_max_score * 100) if total_assignment_max_score > 0 else 0
+        def contribution(key, weight_key):
+            return sum(d[key] for d in days) / total_days * weights.get(weight_key, 0)
 
-        # 3. Quiz Calculation (30% Weight)
-        quiz_subs = []
-        try:
-            quiz_subs = QuizSubmission.objects.filter(user=request.user)
-            for quiz in quiz_subs:
-                obtained = getattr(quiz, 'score', getattr(quiz, 'marks_obtained', 0))
-                max_m = getattr(quiz, 'total_marks', 3)
-                total_quiz_score_obtained += obtained
-                total_quiz_max_score += max_m
-        except:  # noqa: E722  (kept from the original view)
-            pass
-
-        if total_quiz_max_score == 0 and len(quiz_subs) > 0:
-            total_quiz_max_score = len(quiz_subs) * 3
-
-        quiz_percentage = (total_quiz_score_obtained / total_quiz_max_score * 100) if total_quiz_max_score > 0 else 0
-
-        # Weighted Final Score Formula
-        if total_lessons > 0 or len(assignment_subs) > 0 or len(quiz_subs) > 0:
-            weighted_score = (watch_time_percentage * 0.4) + (assignment_percentage * 0.3) + (quiz_percentage * 0.3)
-            overall_score = int(round(weighted_score))
-        else:
-            overall_score = 0
-
-        # Grade Assignment
-        if overall_score > 75:
-            grade = "Advanced"
-        elif overall_score > 40:
-            grade = "Intermediate"
-        elif overall_score > 0:
-            grade = "Beginner"
-        else:
-            grade = "Needs Improvement"
-
-    course_title = getattr(active_course, 'topic', getattr(active_course, 'course_name', getattr(active_course, 'title', 'your course'))) if active_course else "your current course"
-
-    # AI Remarks generated automatically
-    ai_remarks = (
-        f"Progress status for {course_title}: Watch Time ratio contributed {int(watch_time_percentage*0.4)}%, "
-        f"Assignments contributed {int(assignment_percentage*0.3)}%, and Quizzes contributed {int(quiz_percentage*0.3)}%. "
-        f"Your overall calculated weighted performance score is {overall_score}%."
-    ) if active_course else "No active course found. Generate a course to begin tracking your analytics."
+        course_title = active_course.admin_course.title if active_course.admin_course else "your course"
+        ai_remarks = (
+            f"Progress status for {course_title}: Watch Time contributed {contribution('watch_time_percentage', 'watch_time'):.1f}%, "
+            f"Assignments contributed {contribution('assignment_percentage', 'assignment'):.1f}%, and Quizzes contributed "
+            f"{contribution('quiz_percentage', 'quiz'):.1f}%. Your overall course score is {perf['overall_percentage']}% "
+            f"({perf['completed_days_count']} of {perf['total_days']} days completed)."
+        )
+    else:
+        overall_score = 0
+        grade = "Needs Improvement" if active_course else "Beginner"
+        certificate_unlocked = False
+        ai_remarks = "No active course found. Generate a course to begin tracking your analytics."
 
     # Ensure student has profile and student_id
     profile_obj, _ = Profile.objects.get_or_create(user=request.user)
@@ -160,14 +103,6 @@ def build_dashboard_context(request):
         .first()
     )
     popup_notification = popup_status.notification if popup_status else None
-
-    # Certificate status for the dashboard's certificate card.
-    certificate_unlocked = False
-    if active_course:
-        try:
-            certificate_unlocked = bool(calculate_course_performance(request.user, active_course).get('certificate_unlocked'))
-        except Exception:  # scoring must never break the dashboard
-            logger.exception('Certificate status failed for user %s', request.user.pk)
 
     return {
         'active_course': active_course,

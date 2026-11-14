@@ -550,7 +550,7 @@ def generate_course_with_gemini(admin_course, user, level='Beginner', pace='Stan
             content=item.get('content', ''),
             ai_prompt=used_prompt,
             ai_model=used_model,
-            is_unlocked=(idx == 1)
+            is_unlocked=True  # every day of the plan is open (owner request)
         )
 
     return gen_course

@@ -1,7 +1,7 @@
 """
 Assignment rubric evaluation.
 
-`evaluate_submission_with_ai(lesson_title, submission_text, uploaded_file)` returns
+`evaluate_submission_with_ai(lesson_title, submission_text, uploaded_file, output_image=None)` returns
 ``{"score": int 1..5, "remarks": str, "model": str}``. The caller scales the score to 10 marks.
 
 Gemini is used when GEMINI_API_KEY is configured; otherwise (or on any failure / invalid JSON)
@@ -20,7 +20,7 @@ GEMINI_MODEL = 'gemini-2.5-flash'
 MAX_CHARS_SENT = 6000
 
 
-def _heuristic_grade(submission_text, uploaded_file):
+def _heuristic_grade(submission_text, uploaded_file, output_image=None):
     text = (submission_text or '').strip()
     words = len(text.split())
     has_code = bool(re.search(r'(def |class |function |=>|\{|\}|;|import |print\()', text))
@@ -35,11 +35,14 @@ def _heuristic_grade(submission_text, uploaded_file):
         score = 5
     if uploaded_file and score < 3:
         score = 3
+    if output_image and score < 5:
+        score += 1  # evidence that the code was actually run
 
     remarks = (
         "Submission received and evaluated against the rubric. "
         + ("Code/implementation detected. " if has_code else "")
         + ("Solution file attached. " if uploaded_file else "")
+        + ("Program output screenshot attached. " if output_image else "")
         + ("Expand your explanation with more detail and examples to earn higher marks." if score < 4
            else "Well-structured and detailed work.")
     )
@@ -54,8 +57,8 @@ def _strip_fences(raw):
     return raw
 
 
-def evaluate_submission_with_ai(lesson_title, submission_text, uploaded_file=None, user=None):
-    fallback = _heuristic_grade(submission_text, uploaded_file)
+def evaluate_submission_with_ai(lesson_title, submission_text, uploaded_file=None, user=None, output_image=None):
+    fallback = _heuristic_grade(submission_text, uploaded_file, output_image)
     api_key = get_gemini_api_key()
     text = (submission_text or '').strip()
     if not api_key or not text:
@@ -68,6 +71,7 @@ def evaluate_submission_with_ai(lesson_title, submission_text, uploaded_file=Non
         "Respond ONLY with JSON: {\"score\": <integer 1-5>, \"remarks\": \"<2-3 sentences of feedback>\"}\n\n"
         f"SUBMISSION:\n<<<\n{text[:MAX_CHARS_SENT]}\n>>>"
         + ("\n(The student also attached a solution file.)" if uploaded_file else "")
+        + ("\n(The student also attached a screenshot of the program's output.)" if output_image else "")
     )
     try:
         from google import genai

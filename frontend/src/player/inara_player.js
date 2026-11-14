@@ -430,6 +430,11 @@ class LecturePlayer {
         this.autoAdvanceTimeout = null;
         this.watchdogTimer = null;
         this.mutedTickerTimer = null;
+        // Narration session id. Jumping to a slide cancels the old speech; the browser then fires
+        // the old utterance's onerror/onend *after* the jump, which used to count as "slide
+        // finished" and auto-advance again (and again), so a jump never landed on the chosen slide.
+        // Handlers of a superseded narration compare their id and do nothing.
+        this.narrationId = 0;
 
         // Slide skipping prevention:
         // Student CANNOT skip forward until narration ends for current slide
@@ -560,7 +565,7 @@ class LecturePlayer {
             this._listen(this.lectureAudio, 'ended', () => {
                 cancelAnimationFrame(this.rafId);
                 this.avatar.setFrame('idle');
-                this.onSlideFinished();
+                if (this.isPlaying) this.onSlideFinished();
             });
 
             this._listen(this.lectureAudio, 'timeupdate', () => {
@@ -569,6 +574,8 @@ class LecturePlayer {
             });
 
             this._listen(this.lectureAudio, 'error', (e) => {
+                // Ignore errors from a source we already left (e.g. src cleared on teardown/jump).
+                if (this._destroyed || !this.isPlaying || !this.lectureAudio.getAttribute('src')) return;
                 console.warn("Lecture audio file failed to load, switching to speech fallback:", e);
                 const slide = this.slidesList[this.currentIdx] || {};
                 this.playWithWebSpeech(slide.narration || '');
@@ -840,6 +847,9 @@ class LecturePlayer {
             return;
         }
 
+        const narrationId = ++this.narrationId;
+        const isCurrent = () => !this._destroyed && narrationId === this.narrationId;
+
         try {
             window.speechSynthesis.cancel();
             if (window.speechSynthesis.paused) {
@@ -870,6 +880,7 @@ class LecturePlayer {
 
         let mouthTimer = null;
         utterance.onboundary = (e) => {
+            if (!isCurrent()) return;
             if (e.name === 'word') {
                 this.avatar.setFrame('mouth_open');
                 clearTimeout(mouthTimer);
@@ -882,6 +893,7 @@ class LecturePlayer {
         };
 
         utterance.onend = () => {
+            if (!isCurrent()) return;  // a jump cancelled this narration
             this.avatar.setSpeaking(false);
             if (this.soundWave) this.soundWave.classList.remove('speaking');
             if (this.isPlaying) {
@@ -890,6 +902,7 @@ class LecturePlayer {
         };
 
         utterance.onerror = (err) => {
+            if (!isCurrent()) return;  // "interrupted"/"canceled" after a jump: not a finished slide
             console.warn("SpeechSynthesis utterance error:", err);
             this.avatar.setSpeaking(false);
             if (this.soundWave) this.soundWave.classList.remove('speaking');
@@ -901,7 +914,7 @@ class LecturePlayer {
         const estimatedMs = Math.max(8000, ((narration.split(/\s+/).length / 2.3) / this.playbackSpeed) * 1000 + 1500);
         clearTimeout(this.watchdogTimer);
         this.watchdogTimer = setTimeout(() => {
-            if (this.isPlaying && window.speechSynthesis.speaking) {
+            if (isCurrent() && this.isPlaying && window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
                 this.onSlideFinished();
             }
@@ -911,7 +924,7 @@ class LecturePlayer {
             window.speechSynthesis.speak(utterance);
         } catch (e) {
             console.warn("speechSynthesis speak failed, triggering fallback:", e);
-            setTimeout(() => this.onSlideFinished(), 7000);
+            setTimeout(() => { if (isCurrent()) this.onSlideFinished(); }, 7000);
         }
     }
 
@@ -963,13 +976,17 @@ class LecturePlayer {
             this.avatar.setSpeaking(true);
             if (this.soundWave) this.soundWave.classList.add('speaking');
 
+            const audioNarrationId = ++this.narrationId;
             const playPromise = this.lectureAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
+                    if (audioNarrationId !== this.narrationId) return;
                     if (this.playerStatus) {
                         this.playerStatus.innerText = `${this.avatar.avatarName} Lecturing (Slide ${this.currentIdx + 1} of ${this.totalSlides})`;
                     }
                 }).catch(err => {
+                    // AbortError from a jump (play() interrupted by pause()) is not a failure.
+                    if (audioNarrationId !== this.narrationId || this._destroyed) return;
                     console.warn("Audio element play error, falling back to Web Speech:", err);
                     this.playWithWebSpeech(narration);
                 });
@@ -1056,7 +1073,8 @@ class LecturePlayer {
         if (targetIdx < 0) targetIdx = 0;
         if (targetIdx >= this.totalSlides) targetIdx = this.totalSlides - 1;
 
-        // Immediately cancel previous slide audio & speech synthesis
+        // Immediately cancel previous slide audio & speech synthesis (and ignore its late events)
+        this.narrationId++;
         if (this.lectureAudio && !this.lectureAudio.paused) {
             this.lectureAudio.pause();
         }
@@ -1243,6 +1261,7 @@ class LecturePlayer {
                 if (this.isMuted) {
                     if (this.muteIcon) this.muteIcon.className = "bi bi-volume-mute-fill text-danger";
                     this.lectureAudio.muted = true;
+                    this.narrationId++;  // the cancelled speech must not count as a finished slide
                     if ('speechSynthesis' in window) {
                         try { window.speechSynthesis.cancel(); } catch (e) {}
                     }
@@ -1251,6 +1270,8 @@ class LecturePlayer {
                     if (this.playerStatus) {
                         this.playerStatus.innerText = `Slide ${this.currentIdx + 1} of ${this.totalSlides} (Muted)`;
                     }
+                    // Keep the lecture moving silently (muted timer) on the same slide.
+                    if (this.isPlaying) this.goToSlide(this.currentIdx, true);
                 } else {
                     if (this.muteIcon) this.muteIcon.className = "bi bi-volume-up-fill";
                     this.lectureAudio.muted = false;

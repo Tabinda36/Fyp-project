@@ -134,6 +134,7 @@ def _assignment_payload(request, ctx):
             'total_marks': latest.total_marks,
             'ai_feedback': latest.ai_feedback,
             'copy_risk_level': latest.copy_risk_level,
+            'output_image': file_url(latest.output_image),
         } if latest else None,
         'all_submissions': [
             {
@@ -148,6 +149,7 @@ def _assignment_payload(request, ctx):
                 'submitted_at': dt(sub.submitted_at),
                 'question_prompt': sub.question_prompt,
                 'file_submission': file_url(sub.file_submission),
+                'output_image': file_url(sub.output_image),
                 'ai_feedback': sub.ai_feedback,
                 'score': sub.score,
                 'marks': sub.marks,

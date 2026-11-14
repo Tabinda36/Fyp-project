@@ -16,6 +16,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -33,6 +34,18 @@ logger = logging.getLogger('alvixapp.views')
 def _views():
     from .. import views
     return views
+
+
+def current_lesson(active_course, user, submission_model):
+    """The student's current day for a task: the first day without a submission of that kind
+    (assignment or quiz), else the last day.
+
+    Used when the Assignment / Quiz pages are opened without a lesson id. (Every day is unlocked,
+    so "the last unlocked day" would jump to the end of the course and issue that day's work.)
+    """
+    lessons = active_course.daily_lessons.order_by('day_number')
+    done_ids = submission_model.objects.filter(user=user, lesson__in=lessons).values_list('lesson_id', flat=True)
+    return lessons.exclude(id__in=done_ids).first() or lessons.last()
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +208,7 @@ def resolve_assignment_lesson(request, lesson_id=None):
         lesson = DailyLesson.objects.filter(id=lesson_id, generated_course=active_course).first()
 
     if not lesson:
-        lesson = active_course.daily_lessons.filter(is_unlocked=True).last() or active_course.daily_lessons.first()
+        lesson = current_lesson(active_course, request.user, AssignmentSubmission)
 
     if not lesson:
         messages.error(request, "No lesson is available.")
@@ -236,18 +249,21 @@ def submit_assignment(request, state, post, files):
 
     submission_text = str(post.get('student_submission', '') or '').strip()
     uploaded_file = files.get('file_submission')
+    output_image = files.get('output_image')  # optional screenshot of the program output
 
-    if not submission_text and not uploaded_file:
+    if not submission_text and not uploaded_file and not output_image:
         messages.error(request, "Please provide source code/notes or upload a completed solution file.")
         return False
 
-    if uploaded_file:
-        from ..upload_safety import UploadRejected, validate_submission_file
-        try:
+    from ..upload_safety import UploadRejected, validate_image, validate_submission_file
+    try:
+        if uploaded_file:
             validate_submission_file(uploaded_file)
-        except UploadRejected as exc:
-            messages.error(request, str(exc))
-            return False
+        if output_image:
+            validate_image(output_image)
+    except UploadRejected as exc:
+        messages.error(request, str(exc))
+        return False
 
     # Telemetry: Copy/paste and typing pattern tracking
     def _int(name):
@@ -273,7 +289,7 @@ def submit_assignment(request, state, post, files):
     )
 
     # Rubric Evaluation: Do not give zero for copy risk; evaluate rubric fairly and flag for admin
-    eval_result = evaluate_submission_with_ai(lesson.title, submission_text, uploaded_file)
+    eval_result = evaluate_submission_with_ai(lesson.title, submission_text, uploaded_file, output_image=output_image)
     score_val = min(10, max(2, int(eval_result.get('score', 4)) * 2))  # Scale to 10 marks
     rubric_remarks = (
         f"Rubric Feedback: Scored {score_val}/10 marks. {eval_result.get('remarks', 'Good implementation.')} "
@@ -287,6 +303,7 @@ def submit_assignment(request, state, post, files):
             'question_prompt': assignment_prompt,
             'submitted_answer': submission_text,
             'file_submission': uploaded_file,
+            'output_image': output_image,
             'score': score_val,
             'marks': score_val,
             'total_marks': 10,
@@ -308,6 +325,8 @@ def submit_assignment(request, state, post, files):
         submission.submitted_answer = submission_text
         if uploaded_file:
             submission.file_submission = uploaded_file
+        if output_image:
+            submission.output_image = output_image
         submission.score = score_val
         submission.marks = score_val
         submission.total_marks = 10
@@ -358,7 +377,7 @@ def resolve_quiz_lesson(request, lesson_id=None):
         lesson = DailyLesson.objects.filter(id=lesson_id, generated_course__user=request.user).first()
 
     if not lesson and active_course:
-        lesson = active_course.daily_lessons.filter(is_unlocked=True).last() or active_course.daily_lessons.first()
+        lesson = current_lesson(active_course, request.user, QuizSubmission)
 
     if not lesson:
         messages.error(request, "No lesson available for quiz.")
@@ -375,7 +394,25 @@ def prepare_quiz(request, lesson):
 
 
 def submit_quiz(request, active_course, lesson, quiz_questions, post):
-    """The POST branch of quiz_view. Adds the result message."""
+    """The POST branch of quiz_view. Adds the result message.
+
+    A quiz is attempted once per lesson (the page hides the form after the first attempt).
+    The lesson row is locked while checking, so a double click, a retried request or a second
+    tab can no longer record the same attempt twice.
+    """
+    with transaction.atomic():
+        DailyLesson.objects.select_for_update().filter(pk=lesson.pk).first()
+        if QuizSubmission.objects.filter(user=request.user, lesson=lesson).exists():
+            messages.info(request, "You have already attempted this quiz. Your result is in the history record below.")
+            return False
+        _record_quiz_attempt(request, lesson, quiz_questions, post)
+
+    # Continuous daily update of student certificate on submission
+    update_or_create_student_certificate(request.user, active_course, request=request)
+    return True
+
+
+def _record_quiz_attempt(request, lesson, quiz_questions, post):
     score = 0
     total = len(quiz_questions)
     summary_list = []
@@ -438,25 +475,24 @@ def submit_quiz(request, active_course, lesson, quiz_questions, post):
     lesson.is_completed = True
     lesson.save(update_fields=['is_completed'])
 
-    # Continuous daily update of student certificate on submission
-    update_or_create_student_certificate(request.user, active_course, request=request)
-
-    # Unlock next lesson if passed
+    # Every day is already unlocked (owner request), so passing no longer unlocks anything.
     if percentage >= 50:
-        next_lesson = DailyLesson.objects.filter(
-            generated_course=lesson.generated_course,
-            day_number=lesson.day_number + 1
-        ).first()
-        if next_lesson:
-            next_lesson.is_unlocked = True
-            next_lesson.save(update_fields=['is_unlocked'])
-        messages.success(request, f"Quiz passed with {score}/{total} correct answers ({percentage}%)! Next lesson unlocked.")
+        messages.success(request, f"Quiz passed with {score}/{total} correct answers ({percentage}%)!")
     else:
-        messages.warning(request, f"Score: {percentage}%. Review the wrong answer explanations and try again to master the concepts.")
+        messages.warning(request, f"Score: {percentage}%. Review the wrong answer explanations to master the concepts.")
 
 
 def build_quiz_context(request, lesson, quiz_questions):
-    all_submissions = QuizSubmission.objects.filter(user=request.user).order_by('-submitted_at')
+    # One record per lesson: attempts recorded twice before the one-attempt rule (double clicks)
+    # are still in the database, but only the latest one (the one that is scored) is listed.
+    seen_lessons = set()
+    all_submissions = []
+    for sub in QuizSubmission.objects.filter(user=request.user).order_by('-submitted_at', '-id'):
+        if sub.lesson_id is not None:
+            if sub.lesson_id in seen_lessons:
+                continue
+            seen_lessons.add(sub.lesson_id)
+        all_submissions.append(sub)
     latest_submission = QuizSubmission.objects.filter(user=request.user, lesson=lesson).order_by('-submitted_at').first()
     return {
         'lesson': lesson,

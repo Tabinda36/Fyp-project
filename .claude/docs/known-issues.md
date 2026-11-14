@@ -37,6 +37,11 @@ Severity: **H** = crash, security or data loss · **M** = wrong behaviour · **L
 | F7 (part) | L | `#fullscreenBtn` did nothing; "Export Analytics" did nothing | Fullscreen API; client-side CSV export |
 | F8 (part) | L | Certificate showed email under "STUDENT ID" | Shows the student ID |
 | — | L | No dependency manifest | `backend/requirements.txt`, `.env.example` |
+| F3 (scores) | M | Dashboard / My Course progress (40/30/30 estimate, oldest course, fake watch time) never matched the Performance page | Both now use `certificate_service.calculate_course_performance` (20/40/40) on the same course as the Performance page (2026-11-14 student testing) |
+| Q1 | M | A quiz attempt could be recorded twice (double click / retry) | `submit_quiz` locks the lesson row and records one attempt per lesson; old duplicates are listed once (latest), never deleted |
+| P1 | M | Jumping to a slide while the lecture played skipped onward: the cancelled speech's `onerror` counted as "slide finished" | `narrationId` guard in `inara_player.js` (jump, mute, audio play rejections) |
+| L1 | — | Owner request: daily lessons no longer unlock one by one | All days unlocked (creation paths + migration 0015); Assignment/Quiz pages without `lesson_id` open the first day without a submission of that kind |
+| S1 | — | Owner request: assignment code-output screenshot | `AssignmentSubmission.output_image` (validated image), shown in the history; grader is told it was attached |
 
 ## Open (not changed: either design/copy decisions or outside the migration scope)
 | # | Sev | Issue |
@@ -48,7 +53,6 @@ Severity: **H** = crash, security or data loss · **M** = wrong behaviour · **L
 | A5 | M | Copy detection compares peers by `day_number` across unrelated courses |
 | A6 | M | Hand-written QR encoder likely produces unscannable codes (use `segno`/`qrcode`) |
 | A7 | M | Certificate PDF always prints "VERIFIED"; uses Windows-only font paths; verify URL falls back to `127.0.0.1` |
-| F3 | M | Scoring copy differs between pages (mycourse 40/30/30 vs performance 20/40/40); dashboard/mycourse compute progress with 40/30/30 while certificates use 20/40/40 |
 | F4 | M | AI/lesson HTML rendered unescaped (`|safe` → `dangerouslySetInnerHTML`, `innerHTML` in `inara_player.js`) |
 | B9–B12 | L | Unrouted `submit_report`; duplicate URL names (kept on purpose for compatibility); `enrolled_students` notifications fan out to nobody; dashboard `popup_notification` is hard-coded `None` |
 | F6 | L | Inter/Poppins declared but not loaded on some pages (kept for visual parity) |

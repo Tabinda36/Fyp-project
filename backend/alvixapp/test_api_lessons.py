@@ -35,6 +35,14 @@ ASSIGNMENT_DATA = {
 GRADE = {'score': 4, 'remarks': 'Solid work.', 'model': 'heuristic-rubric'}
 
 
+def png_upload(name):
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new('RGB', (4, 4), 'black').save(buf, 'PNG')
+    return SimpleUploadedFile(name, buf.getvalue(), content_type='image/png')
+
+
 def make_course(user, title='Systems 101', days=2):
     admin_course = AdminCourse.objects.create(title=title, slug=f'{user.username}-course', course_code=f'C-{user.username}')
     course = GeneratedCourse.objects.create(user=user, admin_course=admin_course, slug=f'{user.username}-gen', course_type='Practical')
@@ -186,6 +194,50 @@ class AssignmentApiTests(LessonApiBase):
         self.assertTrue(row['file_submission'].startswith('/media/assignment_files/'))
         sub.file_submission.delete(save=False)
 
+    def test_output_screenshot_is_saved_and_listed(self, grade):
+        lesson = self.lessons[0]
+        res = self.client.post(f'/api/v1/lessons/assignment/?lesson_id={lesson.id}', {
+            'student_submission': 'print("hello")',
+            'output_image': png_upload('output.png'),
+        })
+        self.assertEqual(res.status_code, 200)
+        sub = AssignmentSubmission.objects.get(user=self.user, lesson=lesson)
+        self.assertTrue(sub.output_image.name.startswith('assignment_outputs/'))
+        self.assertIsNotNone(grade.call_args.kwargs['output_image'])
+        data = self.client.get('/api/v1/lessons/assignment/', {'lesson_id': lesson.id}).json()
+        self.assertTrue(data['all_submissions'][0]['output_image'].startswith('/media/assignment_outputs/'))
+        self.assertTrue(data['latest_submission']['output_image'].startswith('/media/assignment_outputs/'))
+        sub.output_image.delete(save=False)
+
+    def test_output_screenshot_alone_is_a_valid_submission(self, _grade):
+        res = self.client.post(f'/api/v1/lessons/assignment/?lesson_id={self.lessons[0].id}', {
+            'output_image': png_upload('run.png'),
+        })
+        self.assertEqual(res.status_code, 200)
+        AssignmentSubmission.objects.get(user=self.user).output_image.delete(save=False)
+
+    def test_output_screenshot_must_be_an_image(self, grade):
+        res = self.client.post(f'/api/v1/lessons/assignment/?lesson_id={self.lessons[0].id}', {
+            'student_submission': 'code',
+            'output_image': SimpleUploadedFile('output.png', b'<script>alert(1)</script>', content_type='image/png'),
+        })
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(AssignmentSubmission.objects.exists())
+        grade.assert_not_called()
+
+    def test_issue_date_is_set_only_for_the_opened_day(self, _grade):
+        self.client.get('/api/v1/lessons/assignment/', {'lesson_id': self.lessons[0].id})
+        day1, day2 = (DailyLesson.objects.get(pk=lesson.pk) for lesson in self.lessons)
+        self.assertIsNotNone(day1.assignment_issued_at)
+        self.assertIsNotNone(day1.deadline)
+        self.assertIsNone(day2.assignment_issued_at)  # not issued until the student opens it
+        self.assertIsNone(day2.deadline)
+
+    def test_assignment_without_lesson_id_opens_first_unsubmitted_day(self, _grade):
+        AssignmentSubmission.objects.create(user=self.user, lesson=self.lessons[0], submitted_answer='x')
+        data = self.client.get('/api/v1/lessons/assignment/').json()
+        self.assertEqual(data['lesson']['id'], self.lessons[1].id)
+
     def test_legacy_view_post_still_works(self, _grade):
         lesson = self.lessons[0]
         res = self.client.post(f'/assignment/?lesson_id={lesson.id}', {'student_submission': 'My written answer.'})
@@ -219,17 +271,15 @@ class QuizApiTests(LessonApiBase):
         self.assertEqual(data['redirect'], '/dashboard/')
         self.assertEqual(data['messages'][0]['message'], 'No lesson available for quiz.')
 
-    def test_post_pass_unlocks_next_lesson(self):
+    def test_post_pass_records_result(self):
         lesson = self.lessons[0]
         res = self.client.post(f'/api/v1/lessons/quiz/?lesson_id={lesson.id}', {'q_1': 'B', 'q_2': 'X'})
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()['messages'], [{
-            'tags': 'success', 'message': 'Quiz passed with 2/2 correct answers (100%)! Next lesson unlocked.',
+            'tags': 'success', 'message': 'Quiz passed with 2/2 correct answers (100%)!',
         }])
         sub = QuizSubmission.objects.get(user=self.user, lesson=lesson)
         self.assertEqual((sub.score, sub.total_questions, sub.percentage), (2, 2, 100))
-        self.lessons[1].refresh_from_db()
-        self.assertTrue(self.lessons[1].is_unlocked)
 
         data = self.client.get('/api/v1/lessons/quiz/', {'lesson_id': lesson.id}).json()
         self.assertEqual(data['latest_submission']['score'], 2)
@@ -244,8 +294,30 @@ class QuizApiTests(LessonApiBase):
         wrong = data['latest_submission']['wrong_answers_explanation']
         self.assertEqual([w['question_number'] for w in wrong], [1, 2])
         self.assertEqual(wrong[1]['user_answer'], 'No answer provided')
-        self.lessons[1].refresh_from_db()
-        self.assertFalse(self.lessons[1].is_unlocked)
+
+    def test_second_attempt_is_not_recorded_twice(self):
+        lesson = self.lessons[0]
+        url = f'/api/v1/lessons/quiz/?lesson_id={lesson.id}'
+        self.client.post(url, {'q_1': 'B', 'q_2': 'X'})
+        res = self.client.post(url, {'q_1': 'A', 'q_2': 'Y'})  # double click / retry / second tab
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['messages'][0]['tags'], 'info')
+        self.assertEqual(QuizSubmission.objects.filter(user=self.user, lesson=lesson).count(), 1)
+        self.assertEqual(QuizSubmission.objects.get(user=self.user, lesson=lesson).score, 2)  # first result kept
+
+    def test_old_duplicate_attempts_are_listed_once(self):
+        lesson = self.lessons[0]
+        for score in (1, 2):  # duplicates recorded before the one-attempt rule
+            QuizSubmission.objects.create(user=self.user, lesson=lesson, score=score, total_questions=2, percentage=score * 50)
+        data = self.client.get('/api/v1/lessons/quiz/', {'lesson_id': lesson.id}).json()
+        self.assertEqual(len(data['all_submissions']), 1)
+        self.assertEqual(data['all_submissions'][0]['id'], data['latest_submission']['id'])
+        self.assertEqual(QuizSubmission.objects.filter(user=self.user, lesson=lesson).count(), 2)  # nothing deleted
+
+    def test_quiz_without_lesson_id_opens_first_unattempted_day(self):
+        QuizSubmission.objects.create(user=self.user, lesson=self.lessons[0], score=2, total_questions=2, percentage=100)
+        data = self.client.get('/api/v1/lessons/quiz/').json()
+        self.assertEqual(data['lesson']['id'], self.lessons[1].id)
 
     def test_legacy_quiz_detail_view(self):
         lesson = self.lessons[0]

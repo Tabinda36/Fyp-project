@@ -77,7 +77,9 @@ class MyCourseApiTests(LearningApiBase):
         self.assertIn('<p>', data['today_lesson']['assignment_question_html'])
         self.assertEqual(data['assignment_submissions'][0]['marks'], 8)
         self.assertEqual(data['quiz_submissions'][0]['percentage'], 80)
-        self.assertIsInstance(data['progress_percentage'], int)
+        # Same number as the Performance page / certificate (shared scoring engine)
+        from .certificate_service import calculate_course_performance
+        self.assertEqual(data['progress_percentage'], calculate_course_performance(self.user, self.course)['overall_percentage'])
         # topics resolved like the template: dict title, and str.title() for plain strings
         self.assertEqual(data['content_topics'][0]['label'], 'Variables')
         self.assertEqual(data['content_topics'][1]['label'], 'Plain Topic')

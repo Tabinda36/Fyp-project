@@ -87,6 +87,14 @@ function AssignmentForm({ lessonId, expired, onSubmitted }) {
     </>
   );
 
+  // Owner request: an optional screenshot of the code's output, uploaded next to the code/file.
+  const outputImageInput = (
+    <div className="mb-2">
+      <label className="form-label fw-bold small alvix-text-dark-green">Upload Code Output (Screenshot, Optional)</label>
+      <input type="file" name="output_image" accept="image/png,image/jpeg,image/gif,image/webp" className="form-control form-control-sm" />
+    </div>
+  );
+
   const action = `/assignment/?lesson_id=${lessonId}`;
 
   if (expired) {
@@ -101,6 +109,7 @@ function AssignmentForm({ lessonId, expired, onSubmitted }) {
           <label className="form-label fw-bold small alvix-text-dark-green">Upload File (PDF / Image / Code)</label>
           <input type="file" name="file_submission" className="form-control form-control-sm" />
         </div>
+        {outputImageInput}
         <button type="submit" className="btn alvix-btn-gold w-100 py-2">
           <i className="bi bi-cloud-arrow-up me-2"></i> Submit Assignment
         </button>
@@ -115,10 +124,11 @@ function AssignmentForm({ lessonId, expired, onSubmitted }) {
         <label className="form-label fw-bold small alvix-text-dark-green">Notes / Written Response (Optional)</label>
         <textarea name="student_submission" className="form-control form-control-sm" rows="2" placeholder="Write key logic explanation..." onPaste={telemetry.onPaste} onKeyDown={telemetry.onKeyDown}></textarea>
       </div>
-      <div className="mb-3">
+      <div className="mb-2">
         <label className="form-label fw-bold small alvix-text-dark-green">Upload File (PDF / Image / Code)</label>
         <input type="file" name="file_submission" className="form-control form-control-sm" />
       </div>
+      <div className="mb-3">{outputImageInput}</div>
       <button type="submit" className="btn alvix-btn-gold w-100 py-2">
         <i className="bi bi-cloud-arrow-up me-2"></i> Submit Assignment
       </button>
@@ -127,9 +137,15 @@ function AssignmentForm({ lessonId, expired, onSubmitted }) {
 }
 
 export default function AssignmentPage() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const lessonIdParam = params.get('lesson_id') || undefined;
   const { data, ready, reload } = usePageData('/lessons/assignment/', { lesson_id: lessonIdParam });
+  // Opened without a day (bare /assignment/): after submitting, stay on the submitted day. A plain
+  // reload would let the server pick the next unsubmitted day and issue its assignment.
+  const afterSubmit = (submittedLessonId) => {
+    if (lessonIdParam) reload();
+    else setParams({ lesson_id: String(submittedLessonId) }, { replace: true });
+  };
   usePageAssets({ css });
   const overlays = useNotificationOverlays();
   const panelExpired = useResultPanelReset(ready ? data : null, Boolean(data?.latest_submission));
@@ -237,10 +253,10 @@ export default function AssignmentPage() {
                     <div className="alert alert-warning mb-0 text-center fw-bold py-3">
                       <i className="bi bi-clock-history me-1 fs-5"></i>Standard Deadline Passed. Submission accepted for late review.
                     </div>
-                    <AssignmentForm key={`expired-${lesson.id}`} lessonId={lesson.id} expired onSubmitted={reload} />
+                    <AssignmentForm key={`expired-${lesson.id}`} lessonId={lesson.id} expired onSubmitted={() => afterSubmit(lesson.id)} />
                   </>
                 ) : (
-                  <AssignmentForm key={`open-${lesson.id}`} lessonId={lesson.id} expired={false} onSubmitted={reload} />
+                  <AssignmentForm key={`open-${lesson.id}`} lessonId={lesson.id} expired={false} onSubmitted={() => afterSubmit(lesson.id)} />
                 )}
 
               </div>
@@ -360,9 +376,16 @@ export default function AssignmentPage() {
                           <a href={sub.file_submission} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-success">
                             <i className="bi bi-file-earmark-image me-1"></i> View Submitted File
                           </a>
-                        ) : (
+                        ) : sub.output_image ? null : (
                           <span className="badge bg-light text-muted">Text Only</span>
                         )}
+                        {sub.output_image ? (
+                          <div className={sub.file_submission ? 'mt-1' : undefined}>
+                            <a href={sub.output_image} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-success">
+                              <i className="bi bi-terminal me-1"></i> View Code Output
+                            </a>
+                          </div>
+                        ) : null}
                       </td>
                       <td>
                         <button type="button" className="btn btn-sm alvix-btn-gold" onClick={() => overlays.showRemarksCard(dj(sub.ai_feedback, 'No remarks available.'))}>

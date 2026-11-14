@@ -513,7 +513,7 @@ class DailyLesson(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
     video_url = models.URLField(blank=True, null=True)
-    is_unlocked = models.BooleanField(default=False)
+    is_unlocked = models.BooleanField(default=True)  # all days open (owner request)
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateTimeField(null=True, blank=True)
@@ -563,6 +563,8 @@ class AssignmentSubmission(models.Model):
     question_prompt = models.TextField(blank=True, null=True)
     submitted_answer = models.TextField(blank=True, null=True)
     file_submission = models.FileField(upload_to='assignment_files/', blank=True, null=True)
+    # Optional screenshot of the program's output (owner request), alongside the code/file.
+    output_image = models.ImageField(upload_to='assignment_outputs/', blank=True, null=True)
     score = models.IntegerField(default=5)
     marks = models.IntegerField(default=10)
     total_marks = models.IntegerField(default=10)

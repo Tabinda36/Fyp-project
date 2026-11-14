@@ -263,6 +263,13 @@ EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', '587') or 587)
 EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = env_bool('DJANGO_EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = env_bool('DJANGO_EMAIL_USE_SSL', False)
+# Never let a blocked/slow mail server hang a request (Railway blocks outbound SMTP on
+# non-Pro plans; without this the signup request waited ~130 s for the OS TCP timeout).
+EMAIL_TIMEOUT = int(os.environ.get('DJANGO_EMAIL_TIMEOUT', '10') or 10)
+# HTTPS email API (port 443, works where SMTP is blocked). Used by
+# DJANGO_EMAIL_BACKEND=alvixapp.email_backends.BrevoEmailBackend
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 
 
 # ---------------------------------------------------------------------------

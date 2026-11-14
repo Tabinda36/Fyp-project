@@ -89,6 +89,7 @@ class DashboardApiTests(StudentApiBase):
         self.assertEqual(course['first_lesson_id'], gc.daily_lessons.first().id)
         self.assertEqual(course['tier_display'], 'Harvard / MIT / Stanford St…')
         self.assertEqual(data['grade'], 'Needs Improvement')
+        self.assertEqual(data['active_course']['id'], gc.id)
         # Suggested course only when there are no generated courses and no assessment
         self.assertIsNone(data['suggested_course'])
 
@@ -251,6 +252,27 @@ class PerformanceApiTests(StudentApiBase):
         self.assertEqual(data['remaining_lessons'], 2)
         self.assertEqual(data['score_gap_text'], '35.0')
         self.assertFalse(data['certificate']['is_unlocked'])
+
+    @patch('alvixapp.certificate_service.generate_qr_base64_data_uri', return_value='data:image/png;base64,')
+    def test_dashboard_matches_performance_record(self, _qr):
+        from .models import AssignmentSubmission, QuizSubmission
+        self.complete_assessment()
+        self.make_course(lessons=1)  # an older enrolment must not be the one summarised
+        gc = self.make_course(lessons=2)
+        day1, day2 = gc.daily_lessons.order_by('day_number')
+        DailyLesson.objects.filter(pk=day1.pk).update(watch_time_seconds=90, is_completed=True)
+        AssignmentSubmission.objects.create(user=self.user, lesson=day1, marks=7, score=7, total_marks=10)
+        QuizSubmission.objects.create(user=self.user, lesson=day1, score=3, total_questions=5, percentage=60)
+        QuizSubmission.objects.create(user=self.user, lesson=day2, score=5, total_questions=5, percentage=100)
+
+        dashboard = self.client.get(f'{API}dashboard/').json()
+        perf = self.client.get(f'{API}performance/').json()['performance']
+        self.assertEqual(dashboard['active_course']['id'], gc.id)
+        # day 1: 50% watch*0.2 + 70% assign*0.4 + 60% quiz*0.4 = 62; day 2: 100% quiz*0.4 = 40 -> 51.0
+        self.assertEqual(perf['overall_percentage_text'], '51.0')
+        self.assertEqual(dashboard['overall_progress'], 51.0)
+        self.assertEqual(dashboard['grade'], perf['grade'])
+        self.assertIn('51.0%', dashboard['ai_remarks'])
 
 
 class SettingsApiTests(StudentApiBase):

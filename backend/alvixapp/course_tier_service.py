@@ -176,7 +176,7 @@ def create_course_tiers_and_curriculum(admin_course, force=False):
                     day_number=day_idx,
                     title=clean_title,
                     content=content_html.strip(),
-                    is_unlocked=(day_idx == 1),
+                    is_unlocked=True,  # every day of the plan is open (owner request)
                     is_completed=False,
                 )
             else:
@@ -267,7 +267,7 @@ def sync_student_lessons_from_canonical(gen_course):
                 content=canonical.content,
                 video_url=video_url_val,
                 ppt_file=canonical.ppt_file,
-                is_unlocked=(canonical.day_number == 1 or canonical.day_number in completed_days or (canonical.day_number - 1) in completed_days),
+                is_unlocked=True,  # every day of the plan is open (owner request)
                 is_completed=(canonical.day_number in completed_days),
                 presentation_data=canonical.presentation_data
             )
