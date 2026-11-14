@@ -1,0 +1,114 @@
+        body {
+            background: linear-gradient(135deg, #064E3B 0%, #043828 100%);
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+            color: #1f2937;
+        }
+
+        .verify-card {
+            background: #ffffff;
+            border: 3px solid #D4AF37;
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            max-width: 650px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .verify-header {
+            background: linear-gradient(135deg, #064E3B, #0a5c45);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #D4AF37;
+        }
+
+        .verify-logo-text {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 26px;
+            letter-spacing: 2px;
+            color: #FFF9E6;
+            margin-bottom: 4px;
+        }
+
+        .gold-pill {
+            display: inline-block;
+            background: #D4AF37;
+            color: #064E3B;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            padding: 4px 16px;
+            border-radius: 50px;
+            text-transform: uppercase;
+        }
+
+        .verify-body {
+            padding: 35px 30px;
+        }
+
+        .status-badge-valid {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            color: #065f46;
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .status-badge-invalid {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            font-size: 14px;
+        }
+
+        .meta-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .meta-value {
+            color: #064E3B;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .ai-review-box {
+            background: #fdfbf7;
+            border: 1.5px solid #D4AF37;
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .verify-footer {
+            background: #f9fafb;
+            padding: 18px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    

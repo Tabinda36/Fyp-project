@@ -1,0 +1,139 @@
+/* --- Safe & Isolated Styling (ALVIX Theme) --- */
+.notification-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+    width: 100%;
+}
+
+/* Heading */
+.notification-wrapper .page-title {
+    color: #064e3b;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* --- Consistent Buttons --- */
+.notification-wrapper .btn-green {
+    background: #064e3b;
+    color: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(6, 78, 59, 0.15);
+}
+
+.notification-wrapper .btn-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.notification-wrapper .btn-green-outline {
+    background: transparent;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+}
+
+.notification-wrapper .btn-green-outline:hover {
+    background: #064e3b;
+    color: #ffffff;
+    border-color: #d4af37;
+}
+
+/* --- Form Fields --- */
+.notification-wrapper .form-control, 
+.notification-wrapper .form-select, 
+.notification-wrapper textarea {
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #064e3b;
+    font-weight: 500;
+}
+
+.notification-wrapper .form-control:focus, 
+.notification-wrapper .form-select:focus, 
+.notification-wrapper textarea:focus {
+    border-color: #064e3b;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+/* --- Generator Card (Top Section) --- */
+.notification-wrapper .generator-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+    margin-bottom: 40px;
+}
+
+/* --- History Section Card --- */
+.notification-wrapper .history-card {
+    background: #ffffff;
+    border: 2px solid #d4af37;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+}
+
+.notification-wrapper .section-title {
+    color: #064e3b;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* --- Table with Golden Borders & Soft Green Touches --- */
+.notification-wrapper .table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #d4af37;
+}
+
+.notification-wrapper .table {
+    margin-bottom: 0;
+}
+
+.notification-wrapper .table th {
+    color: #064e3b;
+    font-weight: 800;
+    background: #f0fdf4;
+    border-bottom: 1.5px solid #d4af37;
+    padding: 12px 16px;
+}
+
+.notification-wrapper .table td {
+    color: #047857;
+    vertical-align: middle;
+    padding: 12px 16px;
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+/* --- Badges --- */
+.notification-wrapper .badge-sent {
+    background: #f0fdf4;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}

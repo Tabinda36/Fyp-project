@@ -1,0 +1,509 @@
+    /* ==========================================
+       INARA AI TEACHER AVATAR & INTRO STAGE STYLES
+       ========================================== */
+    #inaraIntroStage {
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        background: radial-gradient(circle at center, #064E3B 0%, #022C22 75%, #011711 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.85s ease, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    #inaraIntroStage.inara-stage-transitioning {
+        opacity: 0;
+        transform: scale(0.92);
+        pointer-events: none;
+    }
+    .inara-intro-content {
+        max-width: 660px;
+        width: 100%;
+        margin: auto;
+    }
+    .inara-intro-brand-pill {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(254, 249, 231, 0.12);
+        border: 1.5px solid #D4AF37;
+        color: #FEF9E7;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 5px 16px;
+        border-radius: 30px;
+        letter-spacing: 0.5px;
+    }
+    .inara-intro-avatar-wrapper {
+        width: 220px;
+        height: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .inara-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: bottom center;
+        filter: drop-shadow(0 10px 25px rgba(212, 175, 55, 0.45));
+        transition: transform 0.2s ease;
+        z-index: 2;
+    }
+    .inara-halo {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, rgba(16, 110, 83, 0) 70%);
+        z-index: 1;
+        animation: inaraHaloGlow 3s infinite alternate;
+    }
+    @keyframes inaraHaloGlow {
+        0% { transform: scale(0.95); opacity: 0.5; }
+        100% { transform: scale(1.18); opacity: 0.9; }
+    }
+
+    /* Waving animation during intro */
+    .inara-waving {
+        animation: inaraWaveMotion 0.45s infinite alternate ease-in-out;
+    }
+    @keyframes inaraWaveMotion {
+        0% { transform: rotate(-3deg); }
+        100% { transform: rotate(3deg); }
+    }
+
+    /* Gentle breathing effect */
+    .inara-breathing {
+        animation: inaraBreatheMotion 3.8s infinite alternate ease-in-out;
+    }
+    @keyframes inaraBreatheMotion {
+        0% { transform: scale(1.0); }
+        100% { transform: scale(1.02); }
+    }
+
+    .inara-tilt-left {
+        transform: rotate(-2deg) scale(1.01) !important;
+    }
+    .inara-tilt-right {
+        transform: rotate(2deg) scale(1.01) !important;
+    }
+
+    /* Bottom-Right Corner Lecture Avatar Widget */
+    #inaraLectureAvatarContainer {
+        position: absolute;
+        bottom: 58px;
+        right: 18px;
+        z-index: 28;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(8px);
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 6px 14px;
+        box-shadow: 0 8px 24px rgba(6, 78, 59, 0.22);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 275px;
+        max-height: 22%;
+        transition: opacity 0.5s ease, transform 0.4s ease;
+    }
+    #inaraLectureAvatarContainer.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(20px);
+    }
+    .inara-corner-img-box {
+        width: 72px;
+        height: 80px;
+        position: relative;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .inara-corner-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: bottom center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .inara-waving,
+        .inara-breathing,
+        .inara-halo,
+        #inaraIntroStage {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #inaraLectureAvatarContainer {
+            bottom: 64px;
+            right: 10px;
+            padding: 4px 10px;
+            max-width: 220px;
+        }
+        .inara-corner-img-box {
+            width: 54px;
+            height: 60px;
+        }
+        .inara-intro-avatar-wrapper {
+            width: 160px;
+            height: 160px;
+        }
+    }
+
+    /* Branding & Palette */
+    .golden-badge {
+        background-color: #064E3B !important;
+        color: #D4AF37 !important;
+        border: 1.5px solid #D4AF37 !important;
+        font-weight: 700;
+    }
+
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        border: 1px solid #c49f27 !important;
+        font-weight: 700;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-golden:hover {
+        background-color: #c49f27 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    }
+
+    /* AI Teacher Animated Hijab Avatar */
+    .ai-teacher-avatar-badge {
+        position: absolute;
+        bottom: 62px;
+        right: 18px;
+        z-index: 28;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        padding: 5px 12px;
+        box-shadow: 0 8px 24px rgba(6, 78, 59, 0.22);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .ai-teacher-avatar-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(212, 175, 55, 0.35);
+    }
+    .avatar-inner-flex {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .avatar-svg-box {
+        width: 72px;
+        height: 80px;
+        position: relative;
+        overflow: visible;
+    }
+    .avatar-live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10B981;
+        display: inline-block;
+        box-shadow: 0 0 8px #10B981;
+    }
+    .is-speaking .avatar-live-dot {
+        background: #D4AF37;
+        box-shadow: 0 0 10px #D4AF37;
+        animation: livePulse 1s infinite alternate;
+    }
+    @keyframes livePulse {
+        from { transform: scale(0.9); opacity: 0.8; }
+        to { transform: scale(1.3); opacity: 1; }
+    }
+    .avatar-title-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #064E3B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .avatar-speech-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .mini-sound-bars {
+        display: flex;
+        align-items: center;
+        gap: 2.5px;
+        height: 12px;
+    }
+    .mini-sound-bars span {
+        width: 2.5px;
+        height: 4px;
+        background: #106E53;
+        border-radius: 2px;
+        transition: height 0.2s ease;
+    }
+    .is-speaking .mini-sound-bars span {
+        background: #D4AF37;
+        animation: barBounce 0.55s infinite ease-in-out alternate;
+    }
+    .is-speaking .mini-sound-bars span:nth-child(1) { animation-delay: 0.05s; }
+    .is-speaking .mini-sound-bars span:nth-child(2) { animation-delay: 0.20s; }
+    .is-speaking .mini-sound-bars span:nth-child(3) { animation-delay: 0.12s; }
+    .is-speaking .mini-sound-bars span:nth-child(4) { animation-delay: 0.28s; }
+    @keyframes barBounce {
+        0% { height: 3px; }
+        100% { height: 14px; }
+    }
+    .avatar-speech-msg {
+        font-size: 0.72rem;
+        color: #64748B;
+        font-weight: 600;
+    }
+    .is-speaking .avatar-speech-msg {
+        color: #064E3B;
+        font-weight: 700;
+    }
+    /* Head bobbing animation while speaking */
+    #avatarHeadGroup {
+        transform-origin: 60px 110px;
+        transition: transform 0.2s ease;
+    }
+    .is-speaking #avatarHeadGroup {
+        animation: headBobTalk 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes headBobTalk {
+        0% { transform: rotate(0deg) translateY(0); }
+        25% { transform: rotate(1.2deg) translateY(-1px); }
+        50% { transform: rotate(-0.8deg) translateY(0.5px); }
+        75% { transform: rotate(0.8deg) translateY(-0.8px); }
+        100% { transform: rotate(-1.2deg) translateY(0); }
+    }
+    /* Eye Blinking */
+    .avatar-eye {
+        transform-origin: center;
+        animation: eyeBlink 4.5s infinite;
+    }
+    @keyframes eyeBlink {
+        0%, 96%, 100% { transform: scaleY(1); }
+        98% { transform: scaleY(0.1); }
+    }
+    /* Mouth Talking Lip-Sync Animation */
+    .avatar-mouth-idle {
+        display: block;
+    }
+    .avatar-mouth-talk {
+        display: none;
+    }
+    .is-speaking .avatar-mouth-idle {
+        display: none;
+    }
+    .is-speaking .avatar-mouth-talk {
+        display: block;
+        transform-origin: 60px 85px;
+        animation: mouthTalk 0.32s infinite alternate ease-in-out;
+    }
+    @keyframes mouthTalk {
+        0% { transform: scale(0.9, 0.45); }
+        50% { transform: scale(1.15, 1.25); }
+        100% { transform: scale(0.95, 0.8); }
+    }
+
+    /* Presentation Canvas 16:9 Aspect Ratio */
+    .presentation-card {
+        border-radius: 20px;
+        border: 2px solid #D4AF37 !important;
+        background: #ffffff;
+    }
+
+    .explanation-panel-card {
+        border-radius: 20px;
+        border: 2px solid #D4AF37 !important;
+        background: #ffffff;
+    }
+
+    .presentation-canvas-container {
+        width: 100%;
+        min-height: 520px;
+        background: #f8fafc;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .explanation-scroll-container {
+        max-height: 560px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #D4AF37 #f1f5f9;
+    }
+    .explanation-scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .explanation-scroll-container::-webkit-scrollbar-thumb {
+        background: #D4AF37;
+        border-radius: 6px;
+    }
+    .explanation-scroll-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .pulse-glow {
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.75) !important;
+        border-color: #D4AF37 !important;
+        transform: scale(1.008);
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Sound Wave Animation */
+    .sound-wave {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+    }
+    .sound-wave .bar {
+        width: 3px;
+        height: 4px;
+        background: #106E53;
+        border-radius: 3px;
+        transition: height 0.2s ease;
+    }
+    .sound-wave.speaking .bar {
+        animation: wave-animation 1s infinite ease-in-out;
+    }
+    .sound-wave.speaking .bar:nth-child(1) { animation-delay: 0.1s; }
+    .sound-wave.speaking .bar:nth-child(2) { animation-delay: 0.3s; }
+    .sound-wave.speaking .bar:nth-child(3) { animation-delay: 0.2s; }
+    .sound-wave.speaking .bar:nth-child(4) { animation-delay: 0.4s; }
+    .sound-wave.speaking .bar:nth-child(5) { animation-delay: 0.15s; }
+
+    @keyframes wave-animation {
+        0%, 100% { height: 4px; }
+        50% { height: 18px; background: #D4AF37; }
+    }
+
+    /* Control Buttons */
+    .control-icon-btn {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .control-icon-btn:hover {
+        transform: scale(1.08);
+        border-color: #064E3B;
+        color: #064E3B;
+    }
+
+    /* Slide Navigation Dots */
+    .slide-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .slide-dot:hover {
+        border-color: #D4AF37;
+        color: #064E3B;
+        transform: translateY(-1px);
+    }
+    .slide-dot.active {
+        background: #064E3B !important;
+        color: #D4AF37 !important;
+        border-color: #D4AF37 !important;
+        box-shadow: 0 2px 6px rgba(6, 78, 59, 0.3);
+    }
+
+    /* Floating Captions Bar */
+    .floating-caption-bar {
+        position: absolute;
+        bottom: 12px;
+        left: 20px;
+        right: 20px;
+        background: rgba(15, 23, 42, 0.88);
+        backdrop-filter: blur(6px);
+        border-radius: 12px;
+        padding: 8px 16px;
+        z-index: 15;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Slide Content Styling Elements */
+    .slide-header-badge {
+        color: #D4AF37;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .slide-main-title {
+        color: #064E3B;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    /* Pulse effect */
+    .pulse-btn {
+        animation: pulse-glow 2s infinite;
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+        70% { box-shadow: 0 0 0 16px rgba(212, 175, 55, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+    }
+
+    /* Slide transition */
+    .slide-fade-in {
+        animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideFadeIn {
+        from { opacity: 0; transform: translateY(10px) scale(0.99); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Code styling */
+    pre.slide-code-box {
+        background: #0f172a;
+        color: #f1f5f9;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 0.82rem;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    /* Spin icon animation */
+    @keyframes spin-clockwise {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spin-icon {
+        display: inline-block;
+        animation: spin-clockwise 1.2s infinite linear;
+    }

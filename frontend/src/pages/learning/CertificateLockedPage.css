@@ -1,0 +1,13 @@
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        border: 1px solid #c49f27 !important;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+    .btn-golden:hover {
+        background-color: #c49f27 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    }

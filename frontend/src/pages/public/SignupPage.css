@@ -1,0 +1,344 @@
+.signup-progress {
+  margin: 0 0 22px;
+}
+
+.signup-progress__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  color: #a4b9af;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.signup-progress__meta span:last-child {
+  color: var(--auth-green);
+}
+
+.signup-progress__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #24453e;
+}
+
+.signup-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--auth-green), var(--auth-gold));
+  transition: width 240ms ease;
+}
+
+.signup-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.signup-step {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: #91a79d;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.signup-step__number {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  place-items: center;
+  border: 1px solid #35594f;
+  border-radius: 50%;
+  background: #103b35;
+  color: #9fb5ab;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.signup-step.is-current {
+  color: var(--auth-ink);
+}
+
+.signup-step.is-current .signup-step__number,
+.signup-step.is-complete .signup-step__number {
+  border-color: var(--auth-green);
+  background: var(--auth-green);
+  color: #fff;
+}
+
+.signup-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #705f33;
+  border-radius: 11px;
+  background: #302d22;
+}
+
+.signup-info__mark {
+  display: grid;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  place-items: center;
+  border-radius: 50%;
+  background: #d6b85d;
+  color: #2b2616;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.signup-info p {
+  margin: 0;
+  color: #e0d4ad;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.signup-test-code {
+  margin: -6px 0 16px;
+  color: #e1cc7d;
+  font-size: 12px;
+  text-align: center;
+}
+
+.signup-code-input {
+  letter-spacing: 0.45em;
+  text-align: center;
+}
+
+.auth-page .password-grid .form-group {
+  margin-bottom: 8px;
+}
+
+.password-match-error {
+  display: block;
+  margin-top: 5px;
+  color: #ffaaa1;
+  font-size: 11px;
+}
+
+.password-strength {
+  margin: 0 0 12px;
+}
+
+.password-strength__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: var(--auth-muted);
+  font-size: 10px;
+}
+
+.password-strength__header strong {
+  color: #ffaaa1;
+  font-weight: 750;
+}
+
+.password-strength[data-strength="3"] .password-strength__header strong,
+.password-strength[data-strength="4"] .password-strength__header strong {
+  color: #e6c46b;
+}
+
+.password-strength[data-strength="5"] .password-strength__header strong {
+  color: #52c69d;
+}
+
+.password-strength__track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #24453e;
+}
+
+.password-strength__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #e47e73;
+  transition: width 180ms ease, background 180ms ease;
+}
+
+.password-strength[data-strength="3"] .password-strength__fill,
+.password-strength[data-strength="4"] .password-strength__fill {
+  background: #e6c46b;
+}
+
+.password-strength[data-strength="5"] .password-strength__fill {
+  background: #52c69d;
+}
+
+.password-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.password-rules li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: #9eb4aa;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.password-rules li > span {
+  display: inline-flex;
+  width: 13px;
+  flex: 0 0 13px;
+  justify-content: center;
+  color: #a4b9af;
+  font-weight: 800;
+}
+
+.password-rules li.is-valid {
+  color: #65d3a9;
+}
+
+.password-rules li.is-valid > span {
+  color: #65d3a9;
+}
+
+.signup-verify-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 760px) {
+  .signup-progress {
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .password-rules {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-steps {
+    gap: 8px;
+  }
+}
+
+body.theme-light .signup-test-code {
+  color: #89670f;
+}
+
+@media (min-width: 761px) and (max-height: 960px) {
+  .signup-progress {
+    margin-bottom: 13px;
+  }
+
+  .signup-progress__meta {
+    margin-bottom: 6px;
+  }
+
+  .signup-steps {
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .signup-step__number {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+
+  .signup-info {
+    margin-bottom: 12px;
+    padding: 8px 11px;
+  }
+
+  .signup-test-code {
+    margin-bottom: 10px;
+  }
+}
+
+body.theme-light .signup-progress__meta,
+body.theme-light .signup-step,
+body.theme-light .password-rules li {
+  color: #6f827a;
+}
+
+body.theme-light .signup-progress__track,
+body.theme-light .password-strength__track {
+  background: #e4ece7;
+}
+
+body.theme-light .signup-step__number {
+  border-color: #d7e3dc;
+  background: #f3f7f4;
+  color: #647a70;
+}
+
+body.theme-light .signup-step.is-current .signup-step__number,
+body.theme-light .signup-step.is-complete .signup-step__number {
+  border-color: var(--auth-green);
+  background: var(--auth-green);
+  color: #fff;
+}
+
+body.theme-light .signup-info {
+  border-color: #eee2c3;
+  background: #fcf8ed;
+}
+
+body.theme-light .signup-info p {
+  color: #665c42;
+}
+
+body.theme-light .password-match-error {
+  color: #b42318;
+}
+
+body.theme-light .password-strength__header strong {
+  color: #b42318;
+}
+
+body.theme-light .password-strength[data-strength="3"] .password-strength__header strong,
+body.theme-light .password-strength[data-strength="4"] .password-strength__header strong {
+  color: #89670f;
+}
+
+body.theme-light .password-strength[data-strength="5"] .password-strength__header strong,
+body.theme-light .password-rules li.is-valid,
+body.theme-light .password-rules li.is-valid > span {
+  color: #08785b;
+}
+
+body.theme-light .password-rules li > span {
+  color: #71857b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signup-progress__fill {
+    transition-duration: 0.01ms;
+  }
+
+  .password-strength__fill {
+    transition-duration: 0.01ms;
+  }
+}

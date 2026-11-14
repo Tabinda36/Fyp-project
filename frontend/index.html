@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALVIX</title>
+    <link rel="icon" href="/assets/brand/alvix-logo.png" />
+    <!--
+      Stylesheets (Bootstrap, Bootstrap Icons, Google Fonts) are NOT loaded globally:
+      each page loads exactly the CDN stylesheets its original Django template loaded
+      (see src/hooks/usePageAssets.js), so pages that never used Bootstrap keep their look.
+      Bootstrap's JS bundle has no visual effect and is loaded once for all pages.
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Templates styled <body> directly (e.g. flex-centred cards). Make the React root
+         layout-transparent so page elements behave as direct children of <body>, as before. -->
+    <style>#root { display: contents; }</style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

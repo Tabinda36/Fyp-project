@@ -1,0 +1,205 @@
+/* --- Global Styling --- */
+body {
+    background: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+}
+
+.content-wrapper {
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.page-title {
+    color: #064e3b;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* --- Compact Row Style for Metric Stats --- */
+.metrics-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: #ffffff;
+    border: 2px solid #d4af37; /* Golden Border */
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 25px;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.08);
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 180px;
+    justify-content: center;
+    border-right: 1.5px solid rgba(212, 175, 55, 0.3);
+}
+
+.metric-item:last-child {
+    border-right: none;
+}
+
+.metric-item h3 {
+    margin: 0;
+    color: #064e3b;
+    font-weight: 800;
+    font-size: 1.75rem;
+}
+
+.metric-item p {
+    margin: 0;
+    color: #047857;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- Sections & Cards --- */
+.section {
+    background: #ffffff;
+    border: 2px solid #d4af37; /* Golden Border */
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+    margin-bottom: 25px;
+}
+
+.section h4 {
+    color: #064e3b;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* --- Buttons --- */
+.btn-green {
+    background: #064e3b;
+    color: #ffffff;
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(6, 78, 59, 0.15);
+}
+
+.btn-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.btn-danger-outline {
+    background: transparent;
+    color: #dc2626;
+    border: 1.5px solid #fca5a5;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-danger-outline:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* --- Form Control --- */
+.form-control {
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: #064e3b;
+    font-weight: 500;
+}
+
+.form-control:focus {
+    border-color: #064e3b;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+/* --- Responsive Table --- */
+.table-responsive {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid #d4af37;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead {
+    background: #f0fdf4;
+    border-bottom: 2px solid #d4af37;
+}
+
+.table th {
+    color: #064e3b;
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+}
+
+.table td {
+    color: #064e3b;
+    vertical-align: middle;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Badges */
+.badge-seen {
+    background-color: #f0fdf4;
+    color: #064e3b;
+    border: 1.5px solid #d4af37;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-pending {
+    background-color: #fefce8;
+    color: #854d0e;
+    border: 1.5px solid #d4af37;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .metrics-row {
+        padding: 15px;
+    }
+    .metric-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        padding-bottom: 12px;
+        width: 100%;
+    }
+    .metric-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+}

@@ -1,0 +1,16 @@
+# Keep secrets, local data and caches out of the image
+.env
+.env.*
+*.sqlite3
+db.sqlite3*
+media/
+staticfiles/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.log
+Dockerfile
+.dockerignore
+railway.json

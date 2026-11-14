@@ -1,0 +1,39 @@
+    .btn-outline-golden { color: #8C7320; border: 1.5px solid #D4AF37; background-color: transparent; transition: all 0.2s ease-in-out; }
+    .btn-outline-golden:hover { background-color: #D4AF37; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); }
+    .btn-outline-success { color: #01411C; border: 1.5px solid #01411C; background-color: transparent; }
+    .btn-outline-success:hover { background-color: #01411C; color: #fff; }
+    
+    /* Topic Accordion Styling */
+    .topic-btn-trigger {
+        cursor: pointer;
+        outline: none;
+    }
+    .topic-btn-trigger:hover {
+        background-color: #f8fafc !important;
+    }
+    .topic-btn-trigger .topic-chevron {
+        transition: transform 0.25s ease;
+    }
+    .topic-btn-trigger:not(.collapsed) .topic-chevron {
+        transform: rotate(180deg);
+        color: #064e3b !important;
+    }
+    .topic-item-card {
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .topic-item-card:hover {
+        border-color: #b8860b !important;
+        box-shadow: 0 3px 10px rgba(212, 175, 55, 0.18);
+    }
+    #tierTabs .nav-link {
+        color: #064e3b;
+        background: #f1f5f9;
+        border: 1.5px solid rgba(212, 175, 55, 0.3);
+        transition: all 0.2s ease;
+    }
+    #tierTabs .nav-link.active {
+        color: #d4af37 !important;
+        background: #064e3b !important;
+        border-color: #d4af37 !important;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }

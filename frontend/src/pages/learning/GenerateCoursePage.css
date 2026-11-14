@@ -1,0 +1,24 @@
+    .custom-select-style:focus, .form-control:focus, .form-select:focus {
+        border-color: #D4AF37 !important;
+        box-shadow: 0 0 0 0.15rem rgba(212, 175, 55, 0.25) !important;
+    }
+    .custom-select-style {
+        border-color: #D4AF37;
+        border-radius: 8px;
+    }
+    .btn-outline-custom {
+        color: #01411C;
+        border: 1.5px solid #D4AF37;
+        background-color: #fff;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    .btn-outline-custom:hover, .btn-check:checked + .btn-outline-custom {
+        background-color: #01411C !important;
+        border-color: #D4AF37 !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(1, 65, 28, 0.2);
+    }
+    .btn-check:checked + .btn-outline-custom .text-muted {
+        color: #cbd5e1 !important;
+    }

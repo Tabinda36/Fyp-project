@@ -1,0 +1,172 @@
+/* --- 🌟 Safe & Isolated Styling (ALVIX Gold & Green Theme) --- */
+.analytics-dashboard-page {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #064e3b;
+    width: 100%;
+}
+
+.analytics-dashboard-page .container-fluid {
+    max-width: 1450px;
+}
+
+/* Heading */
+.analytics-dashboard-page .page-title {
+    color: #064e3b;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* --- Consistent Buttons --- */
+.analytics-dashboard-page .btn-green {
+    background: #064e3b; /* ALVIX Dark Green */
+    color: #ffffff;
+    border: 1.5px solid #d4af37; /* Golden border */
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(6, 78, 59, 0.15);
+}
+
+.analytics-dashboard-page .btn-green:hover {
+    background: #043e2e;
+    color: #ffffff;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+/* --- Single Compact Horizontal Stats Bar --- */
+.analytics-dashboard-page .stats-horizontal-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: #ffffff;
+    border: 2px solid #d4af37; /* Golden Accent Border */
+    border-radius: 18px;
+    padding: 18px 24px;
+    margin-bottom: 25px;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+}
+
+.analytics-dashboard-page .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 150px;
+    justify-content: center;
+    border-right: 1.5px solid rgba(212, 175, 55, 0.3);
+}
+
+.analytics-dashboard-page .stat-item:last-child {
+    border-right: none;
+}
+
+.analytics-dashboard-page .stat-item h3 {
+    margin: 0;
+    color: #064e3b;
+    font-weight: 800;
+    font-size: 1.6rem;
+}
+
+.analytics-dashboard-page .stat-item p {
+    margin: 0;
+    color: #047857;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+/* --- Section Cards --- */
+.analytics-dashboard-page .section-card {
+    background: #ffffff;
+    border: 2px solid #d4af37; /* Golden border */
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+}
+
+.analytics-dashboard-page .section-title {
+    color: #064e3b;
+    font-weight: 800;
+    margin-bottom: 20px;
+    font-size: 1.25rem;
+}
+
+/* --- Progress Bars (ALVIX Theme) --- */
+.analytics-dashboard-page .progress {
+    height: 12px;
+    border-radius: 20px;
+    background-color: #f0fdf4; /* Light Green track */
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.analytics-dashboard-page .progress-bar {
+    background-color: #064e3b; /* Dark Green Fill */
+    border-radius: 20px;
+}
+
+/* --- Table with Golden & Soft Green Touches --- */
+.analytics-dashboard-page .table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #d4af37;
+}
+
+.analytics-dashboard-page .table {
+    margin-bottom: 0;
+}
+
+.analytics-dashboard-page .table th {
+    color: #064e3b;
+    font-weight: 800;
+    background: #f0fdf4;
+    border-bottom: 1.5px solid #d4af37;
+    padding: 12px 16px;
+}
+
+.analytics-dashboard-page .table td {
+    color: #047857;
+    vertical-align: middle;
+    padding: 12px 16px;
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+/* --- Activity Timeline --- */
+.analytics-dashboard-page .activity-item {
+    border-left: 4px solid #d4af37; /* Gold Accent Bar */
+    padding-left: 16px;
+    margin-bottom: 20px;
+}
+
+.analytics-dashboard-page .activity-item h6 {
+    color: #064e3b;
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.analytics-dashboard-page .activity-item small {
+    color: #047857;
+    font-weight: 500;
+}
+
+/* Mobile responsive fixes for horizontal stats */
+@media (max-width: 768px) {
+    .analytics-dashboard-page .stat-item {
+        border-right: none;
+        border-bottom: 1.5px solid rgba(212, 175, 55, 0.3);
+        padding-bottom: 12px;
+        width: 100%;
+    }
+    .analytics-dashboard-page .stat-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+}

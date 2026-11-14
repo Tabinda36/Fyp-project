@@ -1,0 +1,301 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background: #f8faf9;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    position:relative;
+    color: #1B5E20;
+}
+
+/* ALVIX Watermark Background */
+body::before{
+    content:"ALVIX";
+    position:fixed;
+    top:50%;
+    left:55%;
+    transform:translate(-50%,-50%);
+    font-size:200px;
+    font-weight:900;
+    color:#1B5E20;
+    opacity:0.03;
+    z-index:-1;
+    letter-spacing:15px;
+    pointer-events:none;
+}
+
+/* Logo Styling */
+.logo {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo-circle {
+    width: 95px;
+    height: 95px;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #d4af37;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    transition: transform 0.3s ease;
+}
+
+.logo-circle:hover {
+    transform: scale(1.05);
+}
+
+.logo-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Decorate Sidebar with Golden Right Border */
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:260px;
+    height:100vh;
+    background: #ffffff;
+    color:#1B5E20;
+    padding:25px 18px;
+    transition:.3s ease;
+    z-index:1000;
+    border-right: 2px solid #d4af37;
+    box-shadow: 4px 0 20px rgba(212, 175, 55, 0.15);
+    overflow-y: auto;
+}
+
+/* Decorate Sidebar Anchor Tags (Links) */
+.sidebar a{
+    display:flex;
+    align-items:center;
+    color:#1B5E20;
+    text-decoration:none;
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight:600;
+    font-size:14px;
+    background: #ffffff;
+    border: 1.5px solid #d4af37;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.1);
+}
+
+.sidebar a:hover{
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(27, 94, 32, 0.08));
+    border-color: #b89628;
+    color: #0d3810;
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.sidebar a i{
+    margin-right:12px;
+    font-size: 18px;
+    color: #1B5E20;
+    transition: transform 0.3s ease;
+}
+
+.sidebar a:hover i {
+    transform: scale(1.15);
+}
+
+/* Main Content Area */
+.main-content{
+    margin-left:260px;
+    padding:30px;
+}
+
+/* Mobile Button */
+.menu-btn{
+    display:none;
+}
+
+/* Decorate Topbar */
+.topbar{
+    background:#ffffff;
+    padding:20px 25px;
+    border-radius:16px;
+    border-left:6px solid #2E7D32;
+    border-top: 1px solid rgba(212, 175, 55, 0.4);
+    border-right: 1px solid rgba(212, 175, 55, 0.4);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow:0 4px 15px rgba(0,0,0,0.04), 0 0 10px rgba(212, 175, 55, 0.08);
+    margin-bottom:25px;
+}
+
+.topbar h4{
+    margin-bottom:2px;
+    color:#1B5E20;
+    font-weight: 700;
+}
+
+/* Small Profile Image Styling */
+.profile-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d4af37;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+/* System Live Status Badge Styling */
+.status-indicator-card {
+    border: 1.5px solid #d4af37;
+    border-radius: 20px;
+    padding: 6px 16px;
+    background: #fdfbf7;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background-color: #2e7d32;
+    box-shadow: 0 0 8px #2e7d32;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
+    box-shadow: 0 0 8px #dc3545;
+}
+
+/* Decorate Dashboard Cards */
+.dashboard-card{
+    background:#ffffff;
+    padding:22px;
+    border-radius:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
+    transition: all .3s ease;
+    height:100%;
+    border: 1.5px solid rgba(212, 175, 55, 0.35);
+}
+
+.dashboard-card:hover{
+    transform:translateY(-5px);
+    border-color: #d4af37;
+    box-shadow:0 10px 25px rgba(212, 175, 55, 0.2);
+}
+
+.card-title-custom{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:10px;
+    color:#1B5E20;
+}
+
+/* Course Image */
+.course-image{
+    width:100%;
+    height:165px;
+    object-fit:cover;
+    border-radius:12px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.course-name{
+    font-weight:700;
+    color:#1B5E20;
+    margin-top:15px;
+}
+
+/* Buttons Styling */
+.green-btn{
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color:white !important;
+    padding:10px 22px;
+    border: 1px solid #d4af37;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s ease;
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+}
+
+.green-btn:hover{
+    background: linear-gradient(135deg, #1B5E20, #0d3810);
+    transform:translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+/* Responsive Styles */
+@media(max-width:768px){
+    .sidebar{
+        left:-260px;
+    }
+    .sidebar.active{
+        left:0;
+    }
+    .main-content{
+        margin-left:0;
+        padding: 15px;
+    }
+    .menu-btn{
+        display:inline-block;
+        margin-bottom:15px;
+        background:#1B5E20;
+        border: 1px solid #d4af37;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 14px;
+    }
+}
+
+/* Normal Light Theme (Default) */
+body {
+    background-color: #ffffff;
+    color: #064e3b;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode {
+    background-color: #042f2e !important;
+    color: #ecfdf5 !important;
+}
+
+body.dark-mode .dashboard-card,
+body.dark-mode .topbar,
+body.dark-mode .sidebar {
+    background-color: #064e3b !important;
+    color: #ffffff !important;
+    border-color: #d4af37 !important;
+}
+
+body.dark-mode .logo-circle {
+    background: #042f2e !important;
+}
+
+body.dark-mode .sidebar a {
+    background-color: #064e3b !important;
+    color: #ecfdf5 !important;
+    border-color: #d4af37 !important;
+}
+
+body.dark-mode .sidebar a i {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode .course-name, body.dark-mode .card-title-custom {
+    color: #fbbf24 !important;
+}

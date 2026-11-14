@@ -1,0 +1,108 @@
+/* ===================== Student shell tweaks (on top of the shared admin shell CSS) ===================== */
+
+/* Shell chrome uses the console font; page content keeps the student pages' own font. */
+.st-shell .adm-sidebar,
+.st-shell .adm-topbar {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body.st-body {
+    background-color: #f6f9f7;
+}
+
+/* One dark background for shell + pages (StudentLayout.css used #042f2e). */
+body.st-body.dark-mode {
+    background-color: #0b1714 !important;
+}
+
+/* body.dark-mode turns every heading gold; keep the shell's title readable. */
+body.dark-mode .adm-topbar__title {
+    color: #e3f1ea !important;
+}
+
+body.dark-mode .adm-profile__card strong,
+body.dark-mode .adm-bell__head strong {
+    color: #e3f1ea;
+}
+
+/* Unread announcement in the bell */
+.adm-bell__item.is-unread {
+    background: #f3fbf7;
+}
+
+.adm-bell__item.is-unread .adm-bell__text strong::after {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: #e5484d;
+    content: "";
+    vertical-align: middle;
+}
+
+.adm-theme-dark .adm-bell__item.is-unread {
+    background: #12302a;
+}
+
+.adm-bell__markall {
+    padding: 6px 10px;
+    border: 1px solid var(--adm-line);
+    border-radius: 9px;
+    background: #fff;
+    color: #047857;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.adm-bell__markall:hover {
+    border-color: #d4af37;
+}
+
+.adm-theme-dark .adm-bell__markall {
+    background: #16302a;
+    color: #8fdcb9;
+}
+
+/* Bootstrap modals opened by student pages sit above the sticky shell. */
+.st-shell ~ .modal,
+.modal {
+    z-index: 1065;
+}
+
+.modal-backdrop {
+    z-index: 1060;
+}
+
+/* Student pages use the full width of the content area (no centred max-width column). */
+.st-shell .adm-main.st-main {
+    max-width: none;
+}
+
+.st-shell .assessment-card {
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 575.98px) {
+    .st-shell .assessment-card {
+        padding: 22px 16px;
+    }
+
+    .st-shell .question-block {
+        padding: 18px 14px;
+    }
+
+    .st-shell .question-desc,
+    .st-shell .option-grid,
+    .st-shell .expectations-wrapper {
+        margin-left: 0;
+    }
+
+    .st-shell .option-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

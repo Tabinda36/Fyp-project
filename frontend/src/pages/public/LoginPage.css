@@ -1,0 +1,89 @@
+.login-form {
+  margin: 0;
+}
+
+.login-input-wrap {
+  position: relative;
+}
+
+.login-input-icon {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 14px;
+  width: 17px;
+  height: 17px;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: #a4c2b6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  pointer-events: none;
+}
+
+.login-input-wrap .form-control {
+  min-height: 51px;
+  padding-right: 48px;
+  padding-left: 43px;
+}
+
+.login-toggle-pass {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a4c2b6;
+  cursor: pointer;
+}
+
+.login-toggle-pass:hover {
+  background: #21463f;
+}
+
+.login-toggle-pass svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.remember-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 20px;
+  color: var(--auth-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remember-row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--auth-green);
+}
+
+body.theme-light .login-input-icon {
+  stroke: #648277;
+}
+
+body.theme-light .login-toggle-pass {
+  color: #648277;
+}
+
+body.theme-light .login-toggle-pass:hover {
+  background: #edf4ef;
+}

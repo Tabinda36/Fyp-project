@@ -1,0 +1,37 @@
+    .alvix-gold-border { border: 1.5px solid #d4af37 !important; }
+    .alvix-bg-gold { background-color: #fdfbf7 !important; }
+    .alvix-text-dark-green { color: #064e3b !important; }
+    .alvix-btn-gold { background-color: #064e3b; color: #ffffff; border: 1px solid #d4af37; font-weight: 600; }
+    .alvix-btn-gold:hover { background-color: #d4af37; color: #064e3b; }
+    .alvix-header-gold { background: linear-gradient(135deg, #064e3b 0%, #0a3d2e 100%); color: #d4af37; }
+    
+    .custom-quiz-option { transition: 0.2s; cursor: pointer; background-color: #ffffff; border: 1px solid #d4af37 !important; }
+    .custom-quiz-option:hover { background-color: #fdfbf7; border-color: #064e3b !important; }
+    .form-check-input:checked + .form-check-label { font-weight: 600; color: #064e3b; }
+    .form-check-input:checked { background-color: #064e3b; border-color: #d4af37; }
+
+    /* Mid-Screen Center Overlay Notification Cards */
+    #questionNotificationOverlay, #remarksNotificationOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #questionNotificationCard, #remarksNotificationCard {
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0px 15px 30px rgba(0,0,0,0.3);
+        animation: popupScale 0.25s ease-out forwards;
+    }
+
+    @keyframes popupScale {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }

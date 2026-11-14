@@ -1,0 +1,112 @@
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #e8eee8;
+            color: #064e3b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .logout-card {
+            background: #ffffff;
+            padding: 40px 32px;
+            border-radius: 20px;
+            border: 2px solid #d4af37; /* Gold Accent Border */
+            box-shadow: 0 10px 30px rgba(6, 78, 59, 0.08);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .logout-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: #f0fdf4;
+            border: 2px solid #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+
+        .logout-icon-wrapper i {
+            font-size: 2rem;
+            color: #dc2626; /* Red Accent Icon for Logout */
+        }
+
+        h2 {
+            color: #064e3b;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #047857;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #dc2626; /* Warning Red Action */
+            color: #ffffff;
+            border: 1.5px solid #d4af37;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.25s ease;
+            width: 100%;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+        }
+
+        .btn-logout:hover {
+            background-color: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(212, 175, 55, 0.25);
+        }
+
+        .btn-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #064e3b; /* ALVIX Primary Dark Green */
+            color: #ffffff;
+            border: 1.5px solid #d4af37;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.25s ease;
+            width: 100%;
+        }
+
+        .btn-cancel:hover {
+            background-color: #043e2e;
+            color: #ffffff;
+            border-color: #d4af37;
+            transform: translateY(-1px);
+        }
+    

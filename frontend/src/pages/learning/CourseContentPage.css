@@ -1,0 +1,72 @@
+    /* Golden Theme & Dashboard Styling */
+    .page-title { color: #1B5E20; font-weight: 700; }
+    
+    .golden-border {
+        border: 2px solid #D4AF37 !important;
+        box-shadow: 0 4px 14px rgba(212, 175, 55, 0.18) !important;
+    }
+
+    .golden-badge {
+        background-color: #064E3B !important;
+        color: #D4AF37 !important;
+        border: 1px solid #D4AF37 !important;
+        font-weight: 600;
+    }
+
+    .btn-golden {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+        font-weight: 700;
+        border: 1px solid #B8860B !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-golden:hover {
+        background-color: #B8860B !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    }
+
+    .btn-outline-golden {
+        border: 1px solid #D4AF37 !important;
+        color: #B8860B !important;
+        background-color: transparent;
+    }
+
+    .btn-outline-golden:hover {
+        background-color: #D4AF37 !important;
+        color: #064E3B !important;
+    }
+
+    .dashboard-card { 
+        background: #FFFFFF; 
+        border-radius: 18px; 
+    }
+
+    .topic-card, .lesson-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .topic-card:hover, .lesson-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(212, 175, 55, 0.25) !important;
+    }
+
+    .golden-hr {
+        border-top: 1px solid #D4AF37;
+        opacity: 0.5;
+    }
+
+    .ai-generated-content p { color: #495057; line-height: 1.6; }
+
+    #curriculumTabs .nav-link {
+        color: #064E3B;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    #curriculumTabs .nav-link.active {
+        background: linear-gradient(135deg, #064E3B, #106E53);
+        color: #D4AF37;
+        border-color: #D4AF37;
+    }

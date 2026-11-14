@@ -1,0 +1,12 @@
+Welcome to ALVIX, {{ full_name }}!
+
+Your verification code is: {{ code }}
+
+Enter this code on the registration page to confirm your email address.
+It expires in {{ expiry_minutes }} minutes and can be used once.
+Never share this code with anyone - ALVIX staff will never ask for it.
+
+Didn't create an ALVIX account? You can safely ignore this email.
+
+- The ALVIX team
+(c) {{ year }} ALVIX. This is an automated message, please do not reply.

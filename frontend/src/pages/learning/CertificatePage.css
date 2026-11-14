@@ -1,0 +1,461 @@
+        :root {
+            --emerald-dark: #064E3B;
+            --emerald-mid: #106E53;
+            --emerald-light: #065F46;
+            --gold-primary: #D4AF37;
+            --gold-light: #F9E076;
+            --gold-dark: #AA771C;
+            --cream-bg: #FCFBF7;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0F172A;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Top Floating Action Bar */
+        .action-bar {
+            width: 100%;
+            max-width: 1050px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #D4AF37, #AA771C);
+            color: #064E3B;
+            border: 1px solid #FFF8DC;
+            font-weight: 700;
+        }
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            background: linear-gradient(135deg, #F9E076, #D4AF37);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.12);
+            color: #F8FAFC;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        /* Master Certificate Canvas (16:11 ratio, landscape) */
+        .certificate-canvas {
+            width: 1050px;
+            min-height: 742px;
+            background: var(--cream-bg);
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+            border-radius: 12px;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        /* Outer Emerald & Double Gold Borders */
+        .border-outer {
+            width: 100%;
+            height: 100%;
+            border: 8px solid var(--emerald-dark);
+            border-radius: 6px;
+            padding: 8px;
+            position: relative;
+        }
+
+        .border-middle-gold {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--gold-primary);
+            padding: 6px;
+            position: relative;
+        }
+
+        .border-inner {
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(212, 175, 55, 0.55);
+            background: #ffffff;
+            padding: 30px 45px 25px 45px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        /* Corner Victorian Flourishes */
+        .corner-flourish {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .corner-tl { top: 8px; left: 8px; }
+        .corner-tr { top: 8px; right: 8px; transform: scaleX(-1); }
+        .corner-bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+        .corner-br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+
+        /* Subtle Center Watermark */
+        .certificate-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px;
+            height: 380px;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Certificate Content Layers */
+        .cert-header {
+            position: relative;
+            z-index: 3;
+            margin-bottom: 6px;
+        }
+
+        .emblem-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 6px auto;
+            display: block;
+        }
+
+        .academy-name {
+            font-family: 'Cinzel', serif;
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 3.5px;
+            color: var(--emerald-dark);
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .academy-sub {
+            font-size: 9.5px;
+            letter-spacing: 2px;
+            color: var(--gold-dark);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        /* Gold Foil Ribbon Divider */
+        .gold-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px auto;
+            width: 60%;
+        }
+        .gold-line {
+            flex: 1;
+            height: 1.5px;
+            background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+        }
+        .gold-star {
+            color: var(--gold-primary);
+            font-size: 14px;
+        }
+
+        /* Certificate Title */
+        .cert-title-area {
+            position: relative;
+            z-index: 3;
+        }
+
+        .cert-main-heading {
+            font-family: 'Cinzel', serif;
+            font-size: 34px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--emerald-dark);
+            margin: 4px 0 2px 0;
+            text-transform: uppercase;
+        }
+
+        .cert-subheading {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            font-style: italic;
+            color: #475569;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        /* Recipient Name */
+        .recipient-area {
+            position: relative;
+            z-index: 3;
+            margin: 4px 0;
+        }
+
+        .student-name-text {
+            font-family: 'Cinzel', serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: #064E3B;
+            letter-spacing: 1.5px;
+            display: inline-block;
+            padding: 2px 30px 4px 30px;
+            border-bottom: 2px solid var(--gold-primary);
+            text-shadow: 0 1px 2px rgba(6, 78, 59, 0.15);
+        }
+
+        .student-id-meta {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Degree / Course Award Statement */
+        .award-statement {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            color: #334155;
+            line-height: 1.45;
+            max-width: 820px;
+            margin: 6px auto;
+            position: relative;
+            z-index: 3;
+        }
+
+        .course-title-banner {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.06), rgba(212, 175, 55, 0.1));
+            border: 1.5px solid var(--gold-primary);
+            border-radius: 6px;
+            padding: 6px 24px;
+            margin-top: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--emerald-dark);
+            letter-spacing: 1px;
+        }
+
+        /* Performance Honors & AI Remarks */
+        .honors-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin: 8px 0;
+            position: relative;
+            z-index: 3;
+        }
+
+        .honor-pill {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #1E293B;
+            font-weight: 600;
+        }
+        .honor-pill strong {
+            color: var(--emerald-dark);
+        }
+
+        .commendation-quote {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13.5px;
+            font-style: italic;
+            color: #334155;
+            max-width: 780px;
+            margin: 2px auto 8px auto;
+            background: rgba(254, 249, 231, 0.6);
+            border-left: 3px solid var(--gold-primary);
+            border-right: 3px solid var(--gold-primary);
+            padding: 4px 16px;
+            border-radius: 4px;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Signatures & Official Seal Section */
+        .validation-footer {
+            display: grid;
+            grid-template-columns: 1fr 150px 1fr;
+            align-items: end;
+            gap: 15px;
+            margin-top: 6px;
+            position: relative;
+            z-index: 4;
+        }
+
+        /* Supervisor Signature (Left) */
+        .signature-col-left {
+            text-align: center;
+            padding-bottom: 2px;
+        }
+
+        /* Founder Signature (Right) */
+        .signature-col-right {
+            text-align: center;
+            padding-bottom: 2px;
+        }
+
+        .signature-vector {
+            height: 52px;
+            width: auto;
+            max-width: 220px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .signature-rule {
+            width: 190px;
+            height: 1.5px;
+            background: #334155;
+            margin: 4px auto 6px auto;
+        }
+
+        .signatory-name {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 800;
+            color: #064E3B;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .signatory-role {
+            font-size: 9.5px;
+            color: #64748B;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 2px 0 0 0;
+        }
+
+        .signatory-badge {
+            display: inline-block;
+            font-size: 8.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 3px;
+        }
+        .badge-supervisor {
+            background: #F0FDF4;
+            color: #15803D;
+            border: 1px solid #BBF7D0;
+        }
+        .badge-founder {
+            background: #FEF9E7;
+            color: #854D0E;
+            border: 1px solid #FDE68A;
+        }
+
+        /* Center Official ALVIX Stamp / Seal */
+        .seal-col-center {
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .official-seal-svg {
+            width: 105px;
+            height: 105px;
+            filter: drop-shadow(0 4px 8px rgba(170, 119, 28, 0.35));
+            transition: transform 0.3s ease;
+        }
+
+        .seal-subtext {
+            font-size: 8px;
+            letter-spacing: 1px;
+            font-weight: 800;
+            color: var(--gold-dark);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Bottom Verification Bar */
+        .bottom-metadata {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8.5px;
+            color: #94A3B8;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-top: 1px solid #F1F5F9;
+            padding-top: 4px;
+            margin-top: 6px;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Print Specifics */
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+                margin: 0;
+            }
+            .action-bar {
+                display: none !important;
+            }
+            .certificate-canvas {
+                box-shadow: none;
+                border-radius: 0;
+                width: 100vw;
+                height: 100vh;
+                min-height: 100vh;
+                padding: 10px;
+            }
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+        }
