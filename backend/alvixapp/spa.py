@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 _FALLBACK = (
@@ -12,6 +13,7 @@ _FALLBACK = (
 )
 
 
+@xframe_options_sameorigin  # the admin course view embeds the lesson player (same origin only)
 @ensure_csrf_cookie
 def spa_index(request, *args, **kwargs):
     index = settings.FRONTEND_DIST_DIR / 'index.html'

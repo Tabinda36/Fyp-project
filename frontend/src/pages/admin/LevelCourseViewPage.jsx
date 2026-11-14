@@ -187,6 +187,39 @@ function CurriculumLesson({ lesson }) {
   );
 }
 
+// Owner-requested: the admin sees the lesson video (the same Inara slide player students get)
+// inside the lesson card. Loaded on demand so "Expand All" doesn't start a player per day.
+function LessonVideoPreview({ lessonId, dayNumber }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-4">
+      <h6 className="fw-bold text-success mb-2"><i className="bi bi-play-btn-fill text-warning me-1"></i> Day {dayNumber} Lesson Video</h6>
+      {open ? (
+        <div className="rounded-3 overflow-hidden shadow-sm" style={{ border: '2px solid #d4af37', background: '#ffffff' }}>
+          <iframe
+            src={`/daily-lesson/${lessonId}/?embed=1`}
+            title={`Day ${dayNumber} lesson video`}
+            style={{ width: '100%', height: '780px', border: 0, display: 'block' }}
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="w-100 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 shadow-sm"
+          style={{ minHeight: '180px', border: '2px dashed #d4af37', background: '#064e3b', color: '#d4af37', cursor: 'pointer' }}
+          onClick={() => setOpen(true)}
+        >
+          <i className="bi bi-play-circle-fill" style={{ fontSize: '3rem' }}></i>
+          <span className="fw-bold">Play Lesson Video</span>
+          <span className="small text-white-50">Same slide player &amp; narration the student sees</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function DailyLessonCard({ dLesson, uploading, onUpload }) {
   const id = dLesson.id;
   return (
@@ -223,6 +256,8 @@ function DailyLessonCard({ dLesson, uploading, onUpload }) {
 
       {/* Collapsed Content Details (PPT Deck, Syllabus, Assignment, Quiz) */}
       <div id={`dailyCollapse${id}`} className="collapse daily-lesson-collapse pt-4 mt-3 border-top" ref={important({ 'border-color': 'rgba(212, 175, 55, 0.25)' })}>
+
+        <LessonVideoPreview lessonId={id} dayNumber={dLesson.day_number} />
 
         {/* PPT Presentation & Audio Hub (Admin Mode) */}
         <div className="row g-4 mb-4">

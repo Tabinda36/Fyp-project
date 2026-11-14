@@ -168,7 +168,10 @@ function ProfileMenu() {
 }
 
 export default function StudentLayout({ children }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  // ?embed=1: page content only (no sidebar/top bar). Used by the admin course view to show
+  // the real lesson player inside a lesson card.
+  const embedded = new URLSearchParams(search).get('embed') === '1';
   const [navOpen, setNavOpen] = useState(false);
   const [theme, toggleTheme] = useStudentTheme();
   const dark = theme === 'dark';
@@ -195,6 +198,14 @@ export default function StudentLayout({ children }) {
   }, [navOpen]);
 
   const title = pageTitle(pathname);
+
+  if (embedded) {
+    return (
+      <main className="adm-main st-main" key={pathname}>
+        {children ?? <Outlet />}
+      </main>
+    );
+  }
 
   return (
     <div className={`adm-shell st-shell${navOpen ? ' nav-open' : ''}`}>

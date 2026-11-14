@@ -33,8 +33,8 @@ def calculate_course_performance(user, generated_course):
       (Weights configurable in settings.DAY_SCORE_WEIGHTS).
     Returns detailed per-day breakdown dictionary and overall course statistics.
     """
-    lessons = DailyLesson.objects.filter(generated_course=generated_course).order_by('day_number')
-    total_days = lessons.count()
+    lessons = list(DailyLesson.objects.filter(generated_course=generated_course).order_by('day_number'))
+    total_days = len(lessons)
     if total_days == 0:
         norm_type = getattr(generated_course, 'course_type', 'Mixed')
         durations = getattr(settings, 'COURSE_PLAN_DURATIONS', {'Theoretical': 7, 'Practical': 10, 'Mixed': 12})
@@ -56,6 +56,18 @@ def calculate_course_performance(user, generated_course):
     total_assignments_submitted = 0
     total_quizzes_submitted = 0
 
+    # Latest submission per lesson, fetched in 2 queries instead of 2 per lesson (N+1 made the
+    # performance page slow enough over the remote DB for the live proxy to drop the request).
+    lesson_ids = [lesson.id for lesson in lessons]
+    latest_assignment = {}
+    for sub in (AssignmentSubmission.objects.filter(user=user, lesson_id__in=lesson_ids)
+                .order_by('lesson_id', '-submitted_at', '-id')):
+        latest_assignment.setdefault(sub.lesson_id, sub)
+    latest_quiz = {}
+    for sub in (QuizSubmission.objects.filter(user=user, lesson_id__in=lesson_ids)
+                .order_by('lesson_id', '-submitted_at', '-id')):
+        latest_quiz.setdefault(sub.lesson_id, sub)
+
     for lesson in lessons:
         d_num = lesson.day_number
         req_seconds = getattr(lesson, 'required_watch_seconds', 180) or 180
@@ -68,7 +80,7 @@ def calculate_course_performance(user, generated_course):
 
         # 2. Assignment Score (0 - 100%)
         # Latest submission for this lesson
-        ast_sub = AssignmentSubmission.objects.filter(user=user, lesson=lesson).order_by('-submitted_at').first()
+        ast_sub = latest_assignment.get(lesson.id)
         if ast_sub:
             total_assignments_submitted += 1
             max_m = getattr(ast_sub, 'total_marks', 10) or 10
@@ -82,7 +94,7 @@ def calculate_course_performance(user, generated_course):
             ast_remarks = "No submission received yet."
 
         # 3. Quiz Score (0 - 100%)
-        quiz_sub = QuizSubmission.objects.filter(user=user, lesson=lesson).order_by('-submitted_at').first()
+        quiz_sub = latest_quiz.get(lesson.id)
         if quiz_sub:
             total_quizzes_submitted += 1
             q_tot = getattr(quiz_sub, 'total_questions', 5) or 5
