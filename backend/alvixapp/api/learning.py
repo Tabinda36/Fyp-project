@@ -97,15 +97,10 @@ def mycourse_payload(context):
             label = tvar(topic, 'title')
         else:
             label = topic
-        study_bullets = tvar(topic, 'study_bullets')
-        if study_bullets:
-            try:
-                study_bullets = study_bullets[:4]
-            except Exception:
-                pass
-            study_bullets = _iter_strings(study_bullets)
-        else:
-            study_bullets = []
+        # Topics are stored with `bullets` (ai_services / course_tier_service); `study_bullets` is
+        # the older key. Reading only `study_bullets` left every topic with the generic fallback text.
+        study_bullets = tvar(topic, 'study_bullets') or tvar(topic, 'bullets')
+        study_bullets = _iter_strings(study_bullets) if study_bullets else []
         topics.append({
             'label': text(label),
             'study_bullets': study_bullets,

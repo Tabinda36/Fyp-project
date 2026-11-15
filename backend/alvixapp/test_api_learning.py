@@ -83,6 +83,9 @@ class MyCourseApiTests(LearningApiBase):
         # topics resolved like the template: dict title, and str.title() for plain strings
         self.assertEqual(data['content_topics'][0]['label'], 'Variables')
         self.assertEqual(data['content_topics'][1]['label'], 'Plain Topic')
+        # topics are stored with `bullets`; the course content tab lists them all
+        self.assertEqual(data['content_topics'][0]['study_bullets'], ['ints', 'strings'])
+        self.assertEqual(data['content_topics'][1]['study_bullets'], [])
 
     def test_tab_validation(self):
         self.assertEqual(self.client.get('/api/v1/learning/mycourse/?tab=QUIZ').json()['active_tab'], 'quiz')

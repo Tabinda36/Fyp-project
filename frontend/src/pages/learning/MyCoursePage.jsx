@@ -1,5 +1,5 @@
 import AdminLoader from '../../layouts/AdminLoader';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { usePageAssets } from '../../hooks/usePageAssets';
 import { usePageData } from '../../hooks/usePageData';
@@ -94,6 +94,13 @@ function MyCourseContent({ data }) {
 
   const [tab, setTab] = useState(() => initialTab(activeTab));
 
+  // Arriving with a section hash (e.g. the dashboard's "Content" button -> #course-content):
+  // bring the tabs + that section into view instead of leaving the page at the hero.
+  useEffect(() => {
+    if (!Object.values(HASH_MAP).includes(window.location.hash)) return;
+    document.getElementById('courseHorizontalNavbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const switchToTab = (tabId) => {
     setTab(tabId);
     if (HASH_MAP[tabId] && window.history.replaceState) {
@@ -110,7 +117,6 @@ function MyCourseContent({ data }) {
   const progressNum = Math.max(0, Math.min(100, Number(progressPercentage) || 0));
   // Never show more than 100% (the server's weighted sum can overshoot with quiz retakes).
   const progress = Number(progressPercentage) > 100 ? '100' : out(progressPercentage);
-  const firstLesson = lessons.length ? lessons[0] : null;
   const ac = activeCourse?.admin_course || {};
   const certUnlocked = Boolean(certificate && certificate.is_unlocked);
   const completedCount = lessons.filter((l) => l.is_completed).length;
@@ -161,14 +167,6 @@ function MyCourseContent({ data }) {
           <p className="smc-hero__desc">
             {truncatewords(dflt(dflt(activeCourse.objective, ac.description), 'Personalized AI-powered curriculum tailored to your learning goals.'), 30)}
           </p>
-          <div className="smc-hero__actions">
-            {todayLesson ? (
-              <Link to={`/daily-lesson/${todayLesson.id}/`} className="smc-btn smc-btn--gold"><i className="bi bi-play-fill"></i> Resume day {todayLesson.day_number}</Link>
-            ) : firstLesson ? (
-              <Link to={`/daily-lesson/${firstLesson.id}/`} className="smc-btn smc-btn--gold"><i className="bi bi-play-fill"></i> Start learning</Link>
-            ) : null}
-            <Link to={`/course_content/?course_id=${activeCourse.id}`} className="smc-btn smc-btn--ghost"><i className="bi bi-journal-text"></i> Full syllabus</Link>
-          </div>
         </div>
         <div className="smc-hero__progress">
           <div className="smc-progress-row"><span>Overall progress</span><strong>{progress}%</strong></div>
@@ -237,35 +235,32 @@ function MyCourseContent({ data }) {
           </SectionHead>
 
           {contentTopics.length ? (
-            <div className="smc-topics">
+            // Owner-requested: topics in series (one row each, divided by a horizontal line)
+            // with all of their bullet points, instead of a grid of cards.
+            <ol className="smc-topic-series">
               {contentTopics.map((topic, i) => (
-                <article className="smc-topic" key={i} style={{ '--i': i }}>
-                  <div>
-                    <div className="smc-topic__head">
-                      <span className="smc-topic__num">{i + 1}</span>
+                <li className="smc-topic-row" key={i} style={{ '--i': i }}>
+                  <span className="smc-topic__num">{i + 1}</span>
+                  <div className="smc-topic-row__body">
+                    <div className="smc-topic-row__head">
+                      <h4 className="smc-topic__title">{topic.label}</h4>
                       <span className="smc-tag">Unit {i + 1}</span>
                     </div>
-                    <h4 className="smc-topic__title">{topic.label}</h4>
                     {topic.study_bullets.length ? (
-                      <ul className="smc-bullets">
+                      <ul className="smc-bullets smc-bullets--series">
                         {topic.study_bullets.map((bullet, j) => (
                           <li key={j}><i className="bi bi-check2"></i><span>{bullet}</span></li>
                         ))}
                       </ul>
                     ) : topic.summary ? (
-                      <p className="smc-muted">{truncatewords(topic.summary, 20)}</p>
+                      <p className="smc-muted mb-0">{topic.summary}</p>
                     ) : (
-                      <p className="smc-muted">Comprehensive study plan and hands-on exercises tailored to university standards.</p>
+                      <p className="smc-muted mb-0">Comprehensive study plan and hands-on exercises tailored to university standards.</p>
                     )}
                   </div>
-                  {firstLesson && (
-                    <Link to={`/daily-lesson/${firstLesson.id}/`} className="smc-btn smc-btn--primary smc-btn--sm smc-btn--block">
-                      <i className="bi bi-play-circle-fill"></i> Study topic
-                    </Link>
-                  )}
-                </article>
+                </li>
               ))}
-            </div>
+            </ol>
           ) : (
             <Empty icon="bi-journal-x" title="Syllabus modules are being prepared" text="You can begin directly with your daily lectures in the Lesson plan tab.">
               <button type="button" className="smc-btn smc-btn--primary" onClick={() => switchToTab('tab-lessons')}>

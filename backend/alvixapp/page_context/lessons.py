@@ -78,13 +78,25 @@ def build_lesson_player_context(request, lesson_id):
     lesson_poster_url = None
 
     try:
-        from ..ppt_generator import build_dynamic_slides_from_content, enrich_lecture_with_narrations
+        from ..ppt_generator import (
+            NARRATION_VERSION, build_dynamic_slides_from_content, enrich_lecture_with_narrations,
+        )
         pdata = lesson.presentation_data if isinstance(lesson.presentation_data, dict) else {}
         slides_list = pdata.get('slides_list', [])
         # Ensure all dynamic slides (13+ slides) from content/syllabus are generated & matched with PPT
         if not pdata or len(slides_list) < 10:
             lecture_data = build_dynamic_slides_from_content(lesson)
             pdata = enrich_lecture_with_narrations(lecture_data, lesson)
+            try:
+                lesson.presentation_data = pdata
+                lesson.save(update_fields=['presentation_data'])
+            except Exception:
+                pass
+            slides_list = pdata.get('slides_list', [])
+        elif pdata.get('narration_version', 1) < NARRATION_VERSION:
+            # Deck is fine but its spoken narration uses older templates (e.g. repeating the lesson
+            # title on every slide): refresh the narration only, keeping the slides as they are.
+            pdata = enrich_lecture_with_narrations(pdata, lesson)
             try:
                 lesson.presentation_data = pdata
                 lesson.save(update_fields=['presentation_data'])

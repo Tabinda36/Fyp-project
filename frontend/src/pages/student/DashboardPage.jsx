@@ -206,7 +206,7 @@ export default function DashboardPage() {
                         <span><i className="bi bi-play-circle"></i> {course.daily_lessons_count} lectures</span>
                       </div>
                       <div className="sd-course__actions">
-                        <Link to={`/course_content/?course_id=${course.id}`} className="sd-btn sd-btn--soft sd-btn--sm"><i className="bi bi-book-half"></i> Content</Link>
+                        <Link to={`/mycourse/?course_id=${course.id}#course-content`} className="sd-btn sd-btn--soft sd-btn--sm"><i className="bi bi-book-half"></i> Content</Link>
                         <Link to={lectureHref(course)} className="sd-btn sd-btn--primary sd-btn--sm"><i className="bi bi-play-circle-fill"></i> Lecture</Link>
                       </div>
                     </div>

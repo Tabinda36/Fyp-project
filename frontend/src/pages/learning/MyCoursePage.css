@@ -1167,3 +1167,54 @@ body.dark-mode .smc-empty__icon {
   background: linear-gradient(135deg, #12302a, #2a2614);
   color: #8fdcb9;
 }
+
+/* ---------- Topics in series (owner-requested: replaces the topic card grid) ---------- */
+
+.smc-topic-series {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--smc-line);
+  border-radius: 16px;
+  background: var(--smc-surface);
+  overflow: hidden;
+}
+
+.smc-topic-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px 20px;
+  animation: smc-rise 450ms ease both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+.smc-topic-row + .smc-topic-row {
+  border-top: 1px solid var(--smc-line);
+}
+
+.smc-topic-row__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.smc-topic-row__head .smc-topic__title {
+  margin: 0;
+}
+
+.smc-bullets--series {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+
+@media (max-width: 767.98px) {
+  .smc-topic-row { padding: 14px; gap: 12px; }
+  .smc-bullets--series { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smc-topic-row { animation: none !important; }
+}

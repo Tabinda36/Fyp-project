@@ -1840,6 +1840,56 @@ def build_dynamic_slides_from_content(lesson, base_data=None):
     return base
 
 
+# Bump when the narration templates change: stored decks with an older version have their
+# template-written narrations regenerated (see build_lesson_player_context).
+NARRATION_VERSION = 2
+
+# Openers of narrations written by the templates below (any version). Narrations that don't
+# start like this (e.g. teacher/admin-provided speaker notes) are never overwritten.
+_TEMPLATE_NARRATION_OPENERS = (
+    "Hello and a very warm welcome to Lecture", "Welcome to Slide", "We now arrive at Slide",
+    "Let us now examine Slide", "Let us now focus on Slide", "Let us transition to Slide",
+    "On Slide ", "We now advance to Slide",
+)
+
+
+def _is_template_narration(text):
+    return str(text or '').lstrip().startswith(_TEMPLATE_NARRATION_OPENERS)
+
+
+def _short_lesson_topic(title):
+    """'Day 1: Computational Foundations - In-Depth Study' -> 'Computational Foundations'."""
+    raw = str(title or '').strip()
+    topic = re.sub(r'^\s*Day\s*\d+\s*[:\-–]\s*', '', raw, flags=re.I)
+    topic = re.sub(r'\s*[-–]\s*In-Depth Study\s*$', '', topic, flags=re.I)
+    return topic.strip(' :-') or raw
+
+
+def _spoken_slide_topic(slide_title, lesson_title, fallback):
+    """The slide's own topic for speech. Slide titles often embed the full lesson title
+    ('Theoretical Mechanics & Principles: Day 1: ...'), which made Inara repeat it on every slide."""
+    topic = str(slide_title or '')
+    for full in (str(lesson_title or ''), _short_lesson_topic(lesson_title)):
+        if full:
+            topic = topic.replace(full, '')
+    topic = re.sub(r'^\s*Day\s*\d+\s*[:\-–]?\s*', '', topic, flags=re.I)
+    topic = topic.strip(' :-–')
+    return topic or fallback
+
+
+def _without_repeated_lesson_title(narration, opener_topic, lesson_title, lesson_topic):
+    """After a slide's opening topic, slide content read aloud often embeds the lesson title
+    again; speak it as "today's topic" / "this topic" instead of repeating it every slide."""
+    head = f"{opener_topic}. "
+    has_head = narration.startswith(head)
+    body = narration[len(head):] if has_head else narration
+    if lesson_title:
+        body = body.replace(lesson_title, "today's topic")
+    if lesson_topic:
+        body = body.replace(lesson_topic, "this topic")
+    return head + body if has_head else body
+
+
 def enrich_lecture_with_narrations(data, lesson):
     """
     Enriches ANY length slide deck (10, 12, 14, 16+ slides dynamically constructed from content)
@@ -1857,6 +1907,9 @@ def enrich_lecture_with_narrations(data, lesson):
 
     day_num = lesson.day_number or 1
     clean_title = lesson.title
+    # Spoken name of today's topic, said on the welcome slide only (not on every slide).
+    lesson_topic = _short_lesson_topic(clean_title)
+    series_name = course_title if course_title.lower().endswith('masterclass') else f"{course_title} masterclass"
 
     # If slides_list is missing or too sparse, synthesize dynamic unbounded deck first
     if not data or "slides_list" not in data or len(data.get("slides_list", [])) < 8:
@@ -1866,24 +1919,28 @@ def enrich_lecture_with_narrations(data, lesson):
     syl = extract_syllabus_context(lesson)
     syl_overview = syl["overview"]
     syl_topics = syl["topics"]
-    syl_topics_str = "; ".join(syl_topics[:3]) if syl_topics else f"core mechanics and workflows for {clean_title}"
+    syl_topics_str = "; ".join(syl_topics[:3]) if syl_topics else f"core mechanics and workflows for {lesson_topic}"
 
     narrations = []
 
     for idx, s in enumerate(slides_list, start=1):
         # If already enriched with >= 420 words, keep it
         existing_narration = s.get("narration") or s.get("teacher_narration")
-        if existing_narration and len(existing_narration.split()) >= 420:
+        outdated_template = (_is_template_narration(existing_narration)
+                             and s.get("narration_version", 1) < NARRATION_VERSION)
+        if existing_narration and len(existing_narration.split()) >= 420 and not outdated_template:
             narrations.append(existing_narration)
             continue
 
         stype = str(s.get("type", "")).lower()
         stitle = s.get("title", f"Slide {idx}")
+        # Each slide opens with its own topic; the lesson title is not repeated.
+        topic = _spoken_slide_topic(stitle, clean_title, lesson_topic)
 
         if stype == "cover" or idx == 1:
             narration = (
-                f"Hello and a very warm welcome to Lecture {day_num} of our professional {course_title} masterclass series! "
-                f"I am genuinely thrilled to guide you through today's comprehensive university-grade lecture, where we unlock the foundational architecture, theoretical mechanics, and production execution of {clean_title}. "
+                f"Hello and a very warm welcome to Lecture {day_num} of our professional {series_name} series! "
+                f"I am genuinely thrilled to guide you through today's comprehensive university-grade lecture, where we unlock the foundational architecture, theoretical mechanics, and production execution of {lesson_topic}. "
                 f"In today's hyper-connected digital economy, software systems and computational pipelines are no longer merely passive back-office tools—they are the vital technological engines "
                 f"driving every high-impact enterprise product, automated cloud infrastructure, and data-driven business strategy across the globe. "
                 f"Consider the technological landscape around us: whether you observe global streaming platforms like Netflix dynamically distributing terabytes of content to over two hundred million concurrent subscribers, "
@@ -1904,15 +1961,15 @@ def enrich_lecture_with_narrations(data, lesson):
                 f"evaluating common beginner traps against senior engineer pro-tips, and concluding with a hands-on practical lab challenge accompanied by an automated grading checklist. "
                 f"I strongly urge you to keep your development terminal open, maintain diligent technical notes, and engage actively with each concept. "
                 f"By the time you conclude this lecture, you will possess the clarity, vocabulary, and practical competence of an experienced engineer ready to tackle real-world challenges in {course_title}. "
-                f"Without further delay, let us proceed to our roadmap and begin mastering {clean_title}."
+                f"Without further delay, let us proceed to our roadmap."
             )
         elif stype == "overview":
-            briefing = s.get("teacher_briefing", f"Mastering {clean_title} is vital for production systems.")
-            rule = s.get("teacher_core_rule", f"Always validate preconditions and isolate failure domains in {clean_title}.")
+            briefing = s.get("teacher_briefing", f"Mastering {lesson_topic} is vital for production systems.")
+            rule = s.get("teacher_core_rule", f"Always validate preconditions and isolate failure domains in {lesson_topic}.")
             objs = s.get("learning_objectives", [])
             objs_str = " ".join([f"Milestone {i+1}: {o}." for i, o in enumerate(objs)])
             narration = (
-                f"Welcome to Slide 2: our Pedagogical Roadmap and Core Learning Objectives for {clean_title}. "
+                f"{topic}. "
                 f"In computer science and professional engineering education, clear roadmaps are the foundation of cognitive mastery. "
                 f"Before touching syntax or compiling algorithms, senior engineers map the architectural territory and identify critical invariants. "
                 f"Here is our core lecture briefing for today's masterclass: {briefing} "
@@ -1938,7 +1995,7 @@ def enrich_lecture_with_narrations(data, lesson):
             c2_pts = "; ".join(c2.get("points", [])) if c2 else "State transition invariants"
             c3_pts = "; ".join(c3.get("points", [])) if c3 else "Resource lifecycle management"
             narration = (
-                f"We now arrive at Slide 3: Core Theoretical Mechanics and Computational Principles for {clean_title}. "
+                f"{topic}. "
                 f"In computer science, true engineering velocity is never achieved through trial and error; it originates directly from an uncompromising grasp of foundational mechanics. "
                 f"Let us dissect our first foundational concept: {c1.get('name', 'Computational Foundations')}. "
                 f"The core technical specifications dictate: {c1_pts}. "
@@ -1963,7 +2020,7 @@ def enrich_lecture_with_narrations(data, lesson):
             flow = s.get("data_flow", "Input → Validator → Engine → Store")
             invariants = " ".join(s.get("key_invariants", []))
             narration = (
-                f"Let us now examine Slide 4: System Architecture and Execution Pipeline for {clean_title}. "
+                f"{topic}. "
                 f"High-performance software engineering is fundamentally the art and science of managing complexity through clean architectural boundaries and decoupled layers. "
                 f"Look closely at the multi-tiered architecture diagram displayed before us. Let us trace each distinct structural layer: {layers_str} "
                 f"Observe the end-to-end operational data flow: {flow}. "
@@ -1980,13 +2037,12 @@ def enrich_lecture_with_narrations(data, lesson):
                 f"Let us now proceed to inspect the production implementation blueprint that brings this architecture to life."
             )
         elif stype == "code":
-            code_title = s.get("code_title", "blueprint.py")
             observations = s.get("teacher_observations", [])
             obs_str = " ".join(observations) if observations else "Defensive validation, pure transformations, and verified post-conditions."
             narration = (
-                f"We now arrive at Slide {idx}: Live Production Implementation Blueprint for {code_title}. "
+                f"{topic}. "
                 f"As engineers, our conceptual models and architectural diagrams must ultimately translate into clean, deterministic, and verifiable code. "
-                f"Every token, type hint, error boundary, and guard clause in this implementation has been carefully crafted according to senior engineering standards for {clean_title}. "
+                f"Every token, type hint, error boundary, and guard clause in this implementation has been carefully crafted according to senior engineering standards. "
                 f"Let us walk through this production implementation step by step. "
                 f"Notice first the explicit input contract validation right at the function entry point: "
                 f"we fail fast and fail loudly whenever an invalid payload, missing key, or unexpected type is passed, preventing silent state corruption from propagating downstream into critical business logic. "
@@ -1999,7 +2055,7 @@ def enrich_lecture_with_narrations(data, lesson):
                 f"and third, it allows execution results to be safely memoized and cached across distributed edge layers. "
                 f"Finally, notice the defensive post-condition assertions executed immediately before the return statement. "
                 f"These assertions serve as automated runtime guarantees, mathematically verifying that our computational invariants hold true before any payload is returned to callers. "
-                f"Adopt this blueprint as your personal standard of excellence whenever implementing {clean_title} in commercial enterprise applications."
+                f"Adopt this blueprint as your personal standard of excellence whenever you implement these ideas in commercial enterprise applications."
             )
         elif stype == "case_study":
             company = s.get("company_context", "High-Scale Production Platform")
@@ -2007,7 +2063,7 @@ def enrich_lecture_with_narrations(data, lesson):
             solution = s.get("solution_architecture", "Engineers refactored the subsystem into decoupled, contract-enforced services.")
             impact = s.get("key_metric_impact", "Latency reduced significantly and uptime reached 99.999%.")
             narration = (
-                f"Let us transition to Slide {idx} for our Real-World Enterprise Production Case Study. "
+                f"{topic}. "
                 f"In university computer science curricula, theoretical mechanics without authentic production context remains purely speculative. "
                 f"Today, we dissect a real-world production incident post-mortem from: {company}. "
                 f"Let us carefully examine the initial architectural failure and root cause: {problem} "
@@ -2029,7 +2085,7 @@ def enrich_lecture_with_narrations(data, lesson):
             cache = s.get("cache_locality", "Sequential memory layouts minimizing CPU cache misses")
             tradeoffs = s.get("trade_offs", "Balances initialization overhead against deterministic throughput")
             narration = (
-                f"On Slide {idx}, we explore Asymptotic Algorithmic Analysis and Memory Profile for {clean_title}. "
+                f"{topic}. "
                 f"In top-tier computer science academies, we do not merely ask whether code produces the correct output; we rigorously quantify how its execution time and memory consumption scale as input sizes approach infinity. "
                 f"Let us inspect our formal time complexity bounds: {time_comp}. "
                 f"Notice why amortized analysis is essential: by structuring our data structures to avoid redundant traversals and full table scans, "
@@ -2047,7 +2103,7 @@ def enrich_lecture_with_narrations(data, lesson):
             mistakes = " ".join(s.get("common_mistakes", []))
             tips = " ".join(s.get("pro_tips", []))
             narration = (
-                f"We now advance to Slide {idx}: Senior Teacher Pro Tips versus Common Beginner Anti-Patterns for {clean_title}. "
+                f"{topic}. "
                 f"Throughout years of mentoring engineering students and reviewing thousands of pull requests, I have consistently observed certain preventable mistakes derail junior developers. "
                 f"Let us review the most frequent anti-patterns: {mistakes} "
                 f"Notice why premature micro-optimization is dangerous: attempting to optimize trivial loops before profiling real bottlenecks leads to convoluted, unmaintainable code that introduces subtle regressions. "
@@ -2062,7 +2118,7 @@ def enrich_lecture_with_narrations(data, lesson):
             checklist = " ".join(s.get("success_checklist", []))
             preview = s.get("next_day_preview", f"Day {day_num + 1} Preview: Next level enterprise concepts.")
             narration = (
-                f"On Slide {idx}, here is your Daily Practical Laboratory Engineering Challenge for {clean_title}. "
+                f"{topic}. "
                 f"In our academy, we believe that true engineering competence is forged through deliberate, hands-on practice. "
                 f"Passive video watching is never enough—you must write the code, configure the environment, encounter edge-case failures, and debug your way to a working solution. "
                 f"Here are your specific laboratory challenge tasks: {tasks} "
@@ -2079,21 +2135,21 @@ def enrich_lecture_with_narrations(data, lesson):
             q_str = " ".join([f"Checkpoint {i+1}: {q.get('question', '')}." for i, q in enumerate(questions)])
             notes = s.get("instructor_notes", "Analyze question distractors to reinforce mental models.")
             narration = (
-                f"On Slide {idx}, let us review our Diagnostic Assessment Concept Checkpoints for {clean_title}. "
+                f"{topic}. "
                 f"In cognitive science and academic pedagogy, diagnostic evaluations serve a vital function: they detect subtle misconceptions before they solidify into permanent bad habits. "
                 f"Let us examine today's key diagnostic checkpoints: {q_str} "
                 f"When you work through these questions on the student portal, do not simply try to guess the correct answer. "
                 f"Instead, deliberately analyze each incorrect distractor option: ask yourself why that choice is flawed, what false assumption leads inexperienced developers to choose it, and what failure mode it would trigger in production. "
                 f"Here is our core instructor insight: {notes} "
                 f"By training your mind to identify subtle design flaws and invalid assumptions, your engineering intuition becomes exceptionally sharp. "
-                f"Head over to your student dashboard to complete these diagnostic checkpoints, log your score, and confirm your mastery of {clean_title}."
+                f"Head over to your student dashboard to complete these diagnostic checkpoints, log your score, and confirm your mastery of today's topic."
             )
         elif stype == "verification":
             checklist = " ".join(s.get("checklist", []))
             milestone = s.get("next_milestone", f"Day {day_num + 1} of syllabus.")
             narration = (
-                f"We now arrive at Slide {idx}: Automated Verification, Academic Accreditation, and Tomorrow's Milestone Preview! "
-                f"Congratulations on completing today's exhaustive masterclass lecture on {clean_title}. "
+                f"{topic}. "
+                f"Congratulations on completing today's exhaustive masterclass lecture. "
                 f"In top-tier university computer science programs, an engineering milestone is only complete when our solutions have been formally verified, audited, and accredited. "
                 f"Let us review our final verification checklist: {checklist} "
                 f"Ensure that your laboratory code passes all unit test assertions with 100% code coverage, that your runtime performance conforms to our asymptotic budgets, "
@@ -2104,11 +2160,11 @@ def enrich_lecture_with_narrations(data, lesson):
             )
         else:
             # Generic academic / deep dive slide
-            pts = " ".join(s.get("key_points", [])) if s.get("key_points") else f"Detailed technical breakdown of {stitle}."
-            spk = s.get("speaker_notes", f"Operational mechanics and trade-offs of {stitle}.")
+            pts = " ".join(s.get("key_points", [])) if s.get("key_points") else f"Detailed technical breakdown of {topic}."
+            spk = s.get("speaker_notes", f"Operational mechanics and trade-offs of {topic}.")
             narration = (
-                f"Let us now focus on Slide {idx}: Deep-Dive Exploration of {stitle}. "
-                f"Within the broader curriculum for {clean_title}, this topic represents an indispensable operational milestone. "
+                f"{topic}. "
+                f"Within today's lesson, this topic represents an indispensable operational milestone. "
                 f"Let us examine the key lecture takeaways and theoretical foundations for this section: {pts} "
                 f"Observe the technical nuances at play here. When systems scale under enterprise workloads, subtle design decisions made in this module compound rapidly across the entire technology stack. "
                 f"As our instructor notes emphasize: {spk} "
@@ -2118,8 +2174,15 @@ def enrich_lecture_with_narrations(data, lesson):
                 f"Keep these takeaways firmly in mind as you apply these concepts in your hands-on laboratory challenge."
             )
 
+        if stype == "cover" or idx == 1:
+            # The welcome slide introduces the topic, by its short name.
+            narration = narration.replace(clean_title, lesson_topic)
+        else:
+            narration = _without_repeated_lesson_title(narration, topic, clean_title, lesson_topic)
+
         s["narration"] = narration
         s["teacher_narration"] = narration
+        s["narration_version"] = NARRATION_VERSION
         narrations.append(narration)
 
     # Strictly guarantee minimum 30-minute lecture requirement (>= 4,200 words at 140 words/min)
@@ -2129,9 +2192,8 @@ def enrich_lecture_with_narrations(data, lesson):
         deficit_per_slide = math.ceil(words_needed / len(slides_list))
         narrations = []
         for idx, s in enumerate(slides_list, start=1):
-            stitle = s.get("title", f"Topic {idx}")
             elaboration = (
-                f" Furthermore, let us reflect more deeply on the pedagogical implications of {stitle} in {clean_title}. "
+                f" Furthermore, let us reflect more deeply on the practical implications of what we have just covered. "
                 f"In production software engineering, mastering these principles requires analyzing not just ideal execution paths, "
                 f"but defensive edge cases, failure recovery protocols, and how data invariants are preserved across distributed boundaries. "
                 f"When you design with these systemic considerations, your implementations achieve industrial-grade stability, "
@@ -2143,6 +2205,7 @@ def enrich_lecture_with_narrations(data, lesson):
 
     data["narrations"] = narrations
     data["total_slides_count"] = len(slides_list)
+    data["narration_version"] = NARRATION_VERSION
     return data
 
 def ensure_lesson_audios(lesson, presentation_data, force=False):
